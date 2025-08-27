@@ -4,28 +4,6 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const path = require('path');
 
-// Serve static files from frontend build in production
-if (process.env.NODE_ENV === 'production') {
-  console.log('🏭 Production mode: Serving static files from frontend build');
-  
-  // Serve static files from the built frontend
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  
-  // Handle React routing - serve index.html for all non-API routes
-  app.get('*', (req, res) => {
-    // Only serve React app for non-API routes
-    if (!req.path.startsWith('/api')) {
-      console.log('🎯 Serving React app for route:', req.path);
-      const indexPath = path.join(__dirname, '../frontend/dist/index.html');
-      console.log('📁 Serving file from:', indexPath);
-      res.sendFile(indexPath);
-    } else {
-      // Let API routes continue to the 404 handler
-      next();
-    }
-  });
-}
-
 // Enhanced logging
 console.log('🚀 Starting AIVest Banking Server...');
 console.log('📅 Timestamp:', new Date().toISOString());
@@ -862,6 +840,22 @@ app.use('*', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Serve static files from frontend build in production (MUST be after all API routes)
+if (process.env.NODE_ENV === 'production') {
+  console.log('🏭 Production mode: Serving static files from frontend build');
+  
+  // Serve static files from the built frontend
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  
+  // Handle React routing - serve index.html for all non-API routes
+  app.get('*', (req, res) => {
+    console.log('🎯 Serving React app for route:', req.path);
+    const indexPath = path.join(__dirname, '../frontend/dist/index.html');
+    console.log('📁 Serving file from:', indexPath);
+    res.sendFile(indexPath);
+  });
+}
 
 // Start server with enhanced startup logging
 const server = app.listen(PORT, () => {

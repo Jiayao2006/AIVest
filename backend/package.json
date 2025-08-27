@@ -29,7 +29,10 @@
     "high-net-worth",
     "portfolio-management"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.0"
+  },
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
