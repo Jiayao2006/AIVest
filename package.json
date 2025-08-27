@@ -1,0 +1,43 @@
+{
+  "name": "aivest-banking-app",
+  "version": "1.0.0",
+  "description": "AIVest - Banking Client Management System for Relationship Managers",
+  "main": "backend/server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "scripts": {
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && npm install",
+    "install:all": "npm run install:frontend && npm run install:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build": "npm run install:all && npm run build:frontend",
+    "start": "cd backend && npm start",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "postinstall": "npm run install:all"
+  },
+  "keywords": [
+    "banking",
+    "client-management",
+    "relationship-manager",
+    "react",
+    "express",
+    "high-net-worth",
+    "portfolio-management"
+  ],
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jiayao2006/AIVest.git"
+  }
+}
