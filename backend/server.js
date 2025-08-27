@@ -742,9 +742,73 @@ app.get('/api/clients/:id/portfolio', (req, res) => {
 
 // Get client recommendations
 app.get('/api/clients/:id/recommendations', (req, res) => {
+  console.log('🤖 GET /api/clients/:id/recommendations - clientId:', req.params.id);
   const clientRecs = recommendations.filter(rec => rec.clientId === req.params.id);
+  console.log('   📊 Found recommendations:', clientRecs.length);
+  
+  // If no recommendations exist for this client, generate generic ones
+  if (clientRecs.length === 0) {
+    console.log('   🔄 No recommendations found, generating generic ones');
+    const client = clients.find(c => c.id === req.params.id);
+    if (client) {
+      const genericRecs = generateGenericRecommendations(client);
+      console.log('   ✅ Generated', genericRecs.length, 'generic recommendations');
+      return res.json(genericRecs);
+    }
+  }
+  
   res.json(clientRecs);
 });
+
+// Helper function to generate generic recommendations for any client
+function generateGenericRecommendations(client) {
+  const riskProfileRecs = {
+    'Conservative': [
+      {
+        id: `rec-${client.id}-1`,
+        clientId: client.id,
+        type: 'rebalance',
+        title: 'Review Asset Allocation',
+        summary: 'Annual portfolio review to ensure allocation aligns with conservative risk profile.',
+        priority: 'Medium',
+        confidence: 78,
+        estimatedImpact: '+0.3% stability',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      }
+    ],
+    'Moderate': [
+      {
+        id: `rec-${client.id}-1`,
+        clientId: client.id,
+        type: 'diversify',
+        title: 'International Diversification',
+        summary: 'Consider adding international equity exposure to improve diversification.',
+        priority: 'Medium',
+        confidence: 82,
+        estimatedImpact: '+0.7% risk-adjusted returns',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      }
+    ],
+    'Aggressive': [
+      {
+        id: `rec-${client.id}-1`,
+        clientId: client.id,
+        type: 'opportunity',
+        title: 'Growth Sector Allocation',
+        summary: 'Evaluate increased exposure to high-growth sectors aligned with aggressive profile.',
+        priority: 'High',
+        confidence: 75,
+        estimatedImpact: '+1.2% upside potential',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      }
+    ]
+  };
+  
+  return riskProfileRecs[client.riskProfile] || riskProfileRecs['Moderate'];
+}
 
 // CORS debug endpoint
 app.get('/api/debug/cors', (req, res) => {
@@ -762,26 +826,89 @@ app.get('/api/debug/cors', (req, res) => {
 
 // Get recommendation details
 app.get('/api/recommendations/:id/detail', (req, res) => {
+  console.log('🔍 GET /api/recommendations/:id/detail - recId:', req.params.id);
+  
+  // First check static recommendations
   const rec = recommendations.find(r => r.id === req.params.id);
-  if (!rec) return res.status(404).json({ error: 'Recommendation not found' });
-  res.json(rec);
+  if (rec) {
+    console.log('   ✅ Found in static recommendations');
+    return res.json(rec);
+  }
+  
+  // Check if this is a generic recommendation ID (format: rec-clientId-number)
+  const genericMatch = req.params.id.match(/^rec-(.+)-(\d+)$/);
+  if (genericMatch) {
+    const clientId = genericMatch[1];
+    console.log('   🔄 Generic recommendation detected for client:', clientId);
+    
+    // Find the client
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+      // Generate the same generic recommendation
+      const genericRecs = generateGenericRecommendations(client);
+      const matchingRec = genericRecs.find(r => r.id === req.params.id);
+      if (matchingRec) {
+        console.log('   ✅ Generated generic recommendation found');
+        return res.json(matchingRec);
+      }
+    }
+  }
+  
+  console.log('   ❌ Recommendation not found');
+  return res.status(404).json({ error: 'Recommendation not found' });
 });
 
 // Handle recommendation action
 app.post('/api/recommendations/:id/action', (req, res) => {
+  console.log('⚡ POST /api/recommendations/:id/action - recId:', req.params.id);
+  console.log('   📝 Action data:', req.body);
+  
   const { action, notes } = req.body;
   const recIndex = recommendations.findIndex(r => r.id === req.params.id);
   
-  if (recIndex === -1) return res.status(404).json({ error: 'Recommendation not found' });
+  if (recIndex !== -1) {
+    // Found in static recommendations - update it
+    console.log('   ✅ Found in static recommendations, updating');
+    recommendations[recIndex] = {
+      ...recommendations[recIndex],
+      status: action,
+      actionDate: new Date().toISOString(),
+      notes
+    };
+    return res.json({ success: true, recommendation: recommendations[recIndex] });
+  }
   
-  recommendations[recIndex] = {
-    ...recommendations[recIndex],
-    status: action,
-    actionDate: new Date().toISOString(),
-    notes
-  };
+  // Check if this is a generic recommendation ID (format: rec-clientId-number)
+  const genericMatch = req.params.id.match(/^rec-(.+)-(\d+)$/);
+  if (genericMatch) {
+    const clientId = genericMatch[1];
+    console.log('   🔄 Generic recommendation action for client:', clientId);
+    
+    // Find the client
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+      // Generate the same generic recommendation and update it
+      const genericRecs = generateGenericRecommendations(client);
+      const matchingRec = genericRecs.find(r => r.id === req.params.id);
+      if (matchingRec) {
+        // Update the generic recommendation
+        const updatedRec = {
+          ...matchingRec,
+          status: action,
+          actionDate: new Date().toISOString(),
+          notes
+        };
+        
+        // Add it to the static recommendations array so it persists
+        recommendations.push(updatedRec);
+        console.log('   ✅ Generic recommendation updated and saved to static array');
+        return res.json({ success: true, recommendation: updatedRec });
+      }
+    }
+  }
   
-  res.json({ success: true, recommendation: recommendations[recIndex] });
+  console.log('   ❌ Recommendation not found');
+  return res.status(404).json({ error: 'Recommendation not found' });
 });
 
 // Enhanced debugging endpoints for network diagnostics

@@ -36,10 +36,15 @@ export default function ClientListPage() {
     return saved ? JSON.parse(saved) : [];
   });
   const API_BASE = useMemo(() => {
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-      return '';
+    if (typeof window === 'undefined') return 'http://localhost:5000';
+    const host = window.location.hostname;
+    const devHosts = new Set(['localhost', '127.0.0.1']);
+    // If running on a known dev host, explicitly target backend port 5000
+    if (devHosts.has(host)) {
+      return import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:5000';
     }
-    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+    // Production: assume same origin reverse proxy
+    return '';
   }, []);
 
   useEffect(() => {

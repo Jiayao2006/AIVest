@@ -17,10 +17,13 @@ export default function ClientDetailPage() {
   const [usingSample, setUsingSample] = useState(false);
 
   const API_BASE = useMemo(() => {
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-      return '';
+    if (typeof window === 'undefined') return 'http://localhost:5000';
+    const host = window.location.hostname;
+    const devHosts = new Set(['localhost', '127.0.0.1']);
+    if (devHosts.has(host)) {
+      return import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:5000';
     }
-    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+    return '';
   }, []);
 
   useEffect(() => {
@@ -97,10 +100,14 @@ export default function ClientDetailPage() {
         if (recsRes.ok) {
           const recsData = await recsRes.json();
           console.log('✅ Recommendations data received:', recsData);
+          console.log('📊 Recommendations count:', recsData.length);
+          console.log('📝 First recommendation structure:', recsData[0]);
           setRecommendations(recsData);
         } else {
           console.warn('⚠️ Recommendations fetch failed:', recsRes.status);
-          setRecommendations(generateSampleRecommendations(clientData));
+          const sampleRecs = generateSampleRecommendations(clientData);
+          console.log('🔄 Using sample recommendations:', sampleRecs);
+          setRecommendations(sampleRecs);
           setUsingSample(true);
         }
 
@@ -235,6 +242,12 @@ export default function ClientDetailPage() {
                   onViewDetail={handleViewSuggestionDetail}
                   clientId={clientId}
                 />
+                {/* Debug info */}
+                {recommendations.length > 0 && (
+                  <div className="mt-2 small text-muted">
+                    Debug: {recommendations.length} recommendations loaded
+                  </div>
+                )}
               </div>
             </div>
           </>
