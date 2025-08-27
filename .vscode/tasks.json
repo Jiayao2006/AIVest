@@ -1,0 +1,19 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "backend:start",
+			"type": "shell",
+			"command": "cd backend && npm start",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "frontend:dev",
+			"type": "shell",
+			"command": "cd frontend && npm run dev",
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}
