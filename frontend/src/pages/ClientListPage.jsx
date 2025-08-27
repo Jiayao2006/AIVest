@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Navigation from '../components/Navigation.jsx';
 import ClientList from '../components/ClientList.jsx';
 import SearchBar from '../components/SearchBar.jsx';
@@ -35,6 +35,13 @@ export default function ClientListPage() {
     const saved = localStorage.getItem('aivest-saved-searches');
     return saved ? JSON.parse(saved) : [];
   });
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const API_BASE = useMemo(() => {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return '';
+    }
+    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -67,7 +74,7 @@ export default function ClientListPage() {
       console.log('\n🚀 === CLIENT FETCH OPERATION START ===');
       console.log('⏰ Timestamp:', new Date().toISOString());
       console.log('🌐 Current location:', window.location.href);
-      console.log('📍 Target API URL:', 'http://localhost:5000/api/clients');
+      console.log('📍 Target API URL:', `${API_BASE}/api/clients`);
       
       setLoading(true); setError(null);
       
@@ -83,7 +90,7 @@ export default function ClientListPage() {
       try {
         console.log('📡 === NETWORK REQUEST DETAILS ===');
         console.log('🔗 Method: GET');
-        console.log('🔗 URL: http://localhost:5000/api/clients');
+  console.log('🔗 URL:', `${API_BASE}/api/clients`);
         console.log('🔗 Headers: Content-Type: application/json');
         console.log('🔗 Credentials: include');
         console.log('🔗 Signal: AbortController attached');
@@ -91,7 +98,7 @@ export default function ClientListPage() {
         // Pre-flight check - test if server is reachable
         console.log('🔍 Pre-flight: Testing server connectivity...');
         try {
-          const healthResponse = await fetch('http://localhost:5000/api/health', {
+          const healthResponse = await fetch(`${API_BASE}/api/health`, {
             method: 'GET',
             signal: controller.signal,
             headers: { 'Content-Type': 'application/json' }
@@ -102,7 +109,7 @@ export default function ClientListPage() {
         }
         
         console.log('📤 Sending main API request with retry logic...');
-        const res = await fetchWithRetry('http://localhost:5000/api/clients', { 
+  const res = await fetchWithRetry(`${API_BASE}/api/clients`, { 
           signal: controller.signal,
           method: 'GET',
           credentials: 'include',
