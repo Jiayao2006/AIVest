@@ -818,8 +818,26 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler for unknown routes
-app.use('*', (req, res) => {
+// Serve static files from frontend build in production (MUST be after all API routes but BEFORE 404)
+if (process.env.NODE_ENV === 'production') {
+  console.log('🏭 Production mode: Serving static files from frontend build');
+  const distPath = path.join(__dirname, '../frontend/dist');
+  const indexPath = path.join(distPath, 'index.html');
+  console.log('📁 Static assets directory:', distPath);
+
+  // Serve static assets
+  app.use(express.static(distPath));
+
+  // For any non-API GET route, serve index.html (React Router support)
+  app.get(/^\/(?!api).*/, (req, res, next) => {
+    if (req.method !== 'GET') return next();
+    console.log('🎯 SPA route detected, serving index.html for:', req.originalUrl);
+    res.sendFile(indexPath);
+  });
+}
+
+// 404 handler for unknown routes (after static + SPA handler)
+app.use((req, res) => {
   console.log(`❓ 404 - Route not found: ${req.method} ${req.originalUrl}`);
   console.log('   📍 Origin:', req.get('Origin') || 'None');
   
@@ -827,35 +845,21 @@ app.use('*', (req, res) => {
     error: 'Route not found',
     method: req.method,
     path: req.originalUrl,
-    availableEndpoints: [
+    message: 'For SPA routes ensure the frontend build exists. For API use /api/...',
+    availableApiEndpoints: [
       'GET /api/health',
       'GET /api/clients',
       'GET /api/clients/search',
       'GET /api/clients/:id',
       'POST /api/clients',
       'DELETE /api/clients/:id',
+      'GET /api/analytics/summary',
       'GET /api/debug/network',
       'GET /api/test'
     ],
     timestamp: new Date().toISOString()
   });
 });
-
-// Serve static files from frontend build in production (MUST be after all API routes)
-if (process.env.NODE_ENV === 'production') {
-  console.log('🏭 Production mode: Serving static files from frontend build');
-  
-  // Serve static files from the built frontend
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  
-  // Handle React routing - serve index.html for all non-API routes
-  app.get('*', (req, res) => {
-    console.log('🎯 Serving React app for route:', req.path);
-    const indexPath = path.join(__dirname, '../frontend/dist/index.html');
-    console.log('📁 Serving file from:', indexPath);
-    res.sendFile(indexPath);
-  });
-}
 
 // Start server with enhanced startup logging
 const server = app.listen(PORT, () => {
