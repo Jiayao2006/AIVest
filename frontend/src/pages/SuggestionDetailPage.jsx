@@ -10,6 +10,7 @@ export default function SuggestionDetailPage() {
   const [error, setError] = useState(null);
   const [actionNotes, setActionNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -35,6 +36,11 @@ export default function SuggestionDetailPage() {
         if (!suggestionRes.ok) throw new Error('Suggestion not found');
         const suggestionData = await suggestionRes.json();
         setSuggestion(suggestionData);
+        
+        // Set initial notes if they exist
+        if (suggestionData.notes) {
+          setActionNotes(suggestionData.notes);
+        }
 
       } catch (e) {
         if (e.name !== 'AbortError') {
@@ -62,8 +68,15 @@ export default function SuggestionDetailPage() {
       });
 
       if (response.ok) {
-        // Navigate back to client detail page
-        navigate(`/clients/${clientId}`);
+        const result = await response.json();
+        // Update local suggestion state
+        setSuggestion(prev => ({
+          ...prev,
+          status: action,
+          actionDate: new Date().toISOString(),
+          notes: actionNotes
+        }));
+        setIsEditing(false);
       } else {
         throw new Error('Failed to submit action');
       }
@@ -77,13 +90,15 @@ export default function SuggestionDetailPage() {
 
   if (loading) {
     return (
-      <div className="container-fluid py-4">
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-          <div className="text-center">
-            <div className="spinner-border text-primary mb-3" role="status">
-              <span className="visually-hidden">Loading...</span>
+      <div className="bg-light min-vh-100">
+        <div className="container-xxl px-4 py-5">
+          <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+            <div className="text-center">
+              <div className="spinner-border text-primary mb-3" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="text-muted">Loading suggestion details...</p>
             </div>
-            <p className="text-muted">Loading suggestion details...</p>
           </div>
         </div>
       </div>
@@ -92,21 +107,24 @@ export default function SuggestionDetailPage() {
 
   if (error || !suggestion) {
     return (
-      <div className="container-fluid py-4">
-        <div className="alert alert-danger">
-          <h5>Error Loading Suggestion</h5>
-          <p className="mb-0">{error || 'Suggestion not found'}</p>
-          <button className="btn btn-outline-danger mt-2" onClick={() => navigate(`/clients/${clientId}`)}>
-            ← Back to Client Details
-          </button>
+      <div className="bg-light min-vh-100">
+        <div className="container-xxl px-4 py-5">
+          <div className="alert alert-danger">
+            <h5>Error Loading Suggestion</h5>
+            <p className="mb-0">{error || 'Suggestion not found'}</p>
+            <button className="btn btn-outline-danger mt-2" onClick={() => navigate(`/clients/${clientId}`)}>
+              ← Back to Client Details
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container-fluid py-4 bg-light min-vh-100">
-      <div className="mb-3">
+    <div className="bg-light min-vh-100">
+      <div className="container-xxl px-4 py-5">
+        <div className="mb-4">
         <button 
           className="btn btn-outline-primary"
           onClick={() => navigate(`/clients/${clientId}`)}
@@ -279,56 +297,115 @@ export default function SuggestionDetailPage() {
               </h5>
             </div>
             <div className="card-body">
-              <div className="mb-3">
-                <label className="form-label small fw-semibold">Action Notes (Optional)</label>
-                <textarea
-                  className="form-control"
-                  rows="4"
-                  placeholder="Add any notes about your decision..."
-                  value={actionNotes}
-                  onChange={(e) => setActionNotes(e.target.value)}
-                />
-              </div>
-
-              <div className="d-grid gap-2">
-                <button
-                  className="btn btn-success"
-                  onClick={() => handleAction('approved')}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="spinner-border spinner-border-sm me-2" role="status">
-                        <span className="visually-hidden">Loading...</span>
+              {/* Current Status Display */}
+              {suggestion.status !== 'pending' && !isEditing && (
+                <div className="mb-3">
+                  <div className="alert alert-info border-0 d-flex align-items-center">
+                    <div className="flex-grow-1">
+                      <div className="d-flex align-items-center mb-2">
+                        <i className={`bi ${suggestion.status === 'approved' ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'} me-2`}></i>
+                        <strong>
+                          {suggestion.status === 'approved' ? 'Approved' : 'Rejected'}
+                        </strong>
+                        <small className="text-muted ms-auto">
+                          {suggestion.actionDate ? new Date(suggestion.actionDate).toLocaleDateString() : ''}
+                        </small>
                       </div>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-check-lg me-2"></i>
-                      Approve Recommendation
-                    </>
-                  )}
-                </button>
-                
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleAction('rejected')}
-                  disabled={isSubmitting}
-                >
-                  <i className="bi bi-x-lg me-2"></i>
-                  Reject Recommendation
-                </button>
-                
-                <button
-                  className="btn btn-outline-secondary"
-                  onClick={() => navigate(`/clients/${clientId}`)}
-                  disabled={isSubmitting}
-                >
-                  <i className="bi bi-arrow-left me-2"></i>
-                  Back to Client
-                </button>
-              </div>
+                      {suggestion.notes && (
+                        <div className="small text-muted">
+                          <strong>Notes:</strong> {suggestion.notes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="d-grid gap-2">
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      <i className="bi bi-pencil me-2"></i>
+                      Edit Decision
+                    </button>
+                    <button
+                      className="btn btn-outline-primary"
+                      onClick={() => navigate(`/clients/${clientId}`)}
+                    >
+                      <i className="bi bi-arrow-left me-2"></i>
+                      Back to Client
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Editable Form - shown when pending or editing */}
+              {(suggestion.status === 'pending' || isEditing) && (
+                <>
+                  <div className="mb-3">
+                    <label className="form-label small fw-semibold">
+                      Action Notes {isEditing ? '(Edit)' : '(Optional)'}
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows="4"
+                      placeholder="Add any notes about your decision..."
+                      value={actionNotes}
+                      onChange={(e) => setActionNotes(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="d-grid gap-2">
+                    <button
+                      className="btn btn-success"
+                      onClick={() => handleAction('approved')}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="spinner-border spinner-border-sm me-2" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                          </div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <i className="bi bi-check-lg me-2"></i>
+                          {isEditing ? 'Update as Approved' : 'Approve Recommendation'}
+                        </>
+                      )}
+                    </button>
+                    
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleAction('rejected')}
+                      disabled={isSubmitting}
+                    >
+                      <i className="bi bi-x-lg me-2"></i>
+                      {isEditing ? 'Update as Rejected' : 'Reject Recommendation'}
+                    </button>
+                    
+                    {isEditing && (
+                      <button
+                        className="btn btn-outline-secondary"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setActionNotes(suggestion.notes || '');
+                        }}
+                      >
+                        <i className="bi bi-x me-2"></i>
+                        Cancel Edit
+                      </button>
+                    )}
+                    
+                    <button
+                      className="btn btn-outline-primary"
+                      onClick={() => navigate(`/clients/${clientId}`)}
+                    >
+                      <i className="bi bi-arrow-left me-2"></i>
+                      Back to Client
+                    </button>
+                  </div>
+                </>
+              )}
 
               <hr className="my-4" />
 
@@ -347,6 +424,7 @@ export default function SuggestionDetailPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

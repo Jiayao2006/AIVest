@@ -2,6 +2,7 @@ export const sampleClients = [
   {
     id: 'c001',
     name: 'Elena Rossi-Marchetti',
+    phone: '+41 22 999 1234',
     aum: 860,
     domicile: 'Switzerland',
     segments: ['Family Office', 'Wealth Preservation'],
@@ -12,6 +13,7 @@ export const sampleClients = [
   {
     id: 'c002',
     name: 'Daniel Chen',
+    phone: '+1 415 555 0187',
     aum: 1250,
     domicile: 'United States',
     segments: ['Tech Entrepreneur', 'Growth'],
@@ -22,6 +24,7 @@ export const sampleClients = [
   {
     id: 'c003',
     name: 'Sophie Turner-Webb',
+    phone: '+44 20 7946 0958',
     aum: 430,
     domicile: 'United Kingdom',
     segments: ['VC Proceeds', 'Renewables'],
@@ -32,6 +35,7 @@ export const sampleClients = [
   {
     id: 'c004',
     name: 'Anders Vikström',
+    phone: '+47 22 12 3456',
     aum: 980,
     domicile: 'Norway',
     segments: ['Shipping', 'Alternatives'],
@@ -42,6 +46,7 @@ export const sampleClients = [
   {
     id: 'c005',
     name: 'Priya Singh-Patel',
+    phone: '+1 416 555 0923',
     aum: 510,
     domicile: 'Canada',
     segments: ['Foundation', 'ESG'],
@@ -52,6 +57,7 @@ export const sampleClients = [
   {
     id: 'c006',
     name: 'Michael Tan-Wong',
+    phone: '+65 6555 4821',
     aum: 1575,
     domicile: 'Singapore',
     segments: ['Private Equity', 'Diversification'],
@@ -62,6 +68,7 @@ export const sampleClients = [
   {
     id: 'c007',
     name: 'Charlotte King-Harrison',
+    phone: '+61 2 9555 7364',
     aum: 690,
     domicile: 'Australia',
     segments: ['Agriculture', 'Real Assets'],
@@ -72,6 +79,7 @@ export const sampleClients = [
   {
     id: 'c008',
     name: 'Julien Moreau-Dubois',
+    phone: '+33 1 42 55 9871',
     aum: 320,
     domicile: 'France',
     segments: ['Art Collector', 'Estate Planning'],
@@ -82,6 +90,7 @@ export const sampleClients = [
   {
     id: 'c009',
     name: 'Isabella Rodriguez-Santos',
+    phone: '+34 91 555 2847',
     aum: 745,
     domicile: 'Spain',
     segments: ['Real Estate', 'Family Wealth'],
@@ -92,6 +101,7 @@ export const sampleClients = [
   {
     id: 'c010',
     name: 'James Wellington III',
+    phone: '+44 20 7555 6293',
     aum: 1890,
     domicile: 'United Kingdom',
     segments: ['Inherited Wealth', 'Hedge Funds'],

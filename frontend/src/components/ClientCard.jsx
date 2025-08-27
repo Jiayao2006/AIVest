@@ -16,18 +16,39 @@ const getAUMBadgeColor = (aum) => {
   return 'bg-gradient-secondary';
 };
 
-export default function ClientCard({ client }) {
+export default function ClientCard({ client, onDelete, onScheduleCall, onSendMessage }) {
   const navigate = useNavigate();
   const { id, name, aum, domicile, segments, description, keyContacts, riskProfile } = client;
   
-  const handleClick = () => {
+  const handleCardClick = (e) => {
+    // Only navigate if clicking on the card itself, not the buttons
+    if (e.target.closest('.action-button')) {
+      return;
+    }
     navigate(`/clients/${id}`);
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+      onDelete(id);
+    }
+  };
+
+  const handleScheduleCall = (e) => {
+    e.stopPropagation();
+    onScheduleCall(client);
+  };
+
+  const handleSendMessage = (e) => {
+    e.stopPropagation();
+    onSendMessage(client);
   };
 
   return (
     <div 
       className="card client-card h-100 border-0 shadow-sm cursor-pointer" 
-      onClick={handleClick}
+      onClick={handleCardClick}
       style={{ cursor: 'pointer' }}
     >
       <div className="card-body d-flex flex-column">
@@ -42,6 +63,38 @@ export default function ClientCard({ client }) {
                 {riskProfile}
               </span>
             </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="dropdown">
+            <button 
+              className="btn btn-link text-muted p-1 action-button" 
+              data-bs-toggle="dropdown"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <i className="bi bi-three-dots-vertical"></i>
+            </button>
+            <ul className="dropdown-menu dropdown-menu-end">
+              <li>
+                <button className="dropdown-item action-button" onClick={handleScheduleCall}>
+                  <i className="bi bi-telephone me-2 text-primary"></i>
+                  Schedule Call
+                </button>
+              </li>
+              <li>
+                <button className="dropdown-item action-button" onClick={handleSendMessage}>
+                  <i className="bi bi-chat-dots me-2 text-info"></i>
+                  Send Message
+                </button>
+              </li>
+              <li><hr className="dropdown-divider" /></li>
+              <li>
+                <button className="dropdown-item text-danger action-button" onClick={handleDelete}>
+                  <i className="bi bi-trash me-2"></i>
+                  Delete Client
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
         

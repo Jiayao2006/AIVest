@@ -21,12 +21,27 @@ export default function ClientDetailPage() {
       setError(null);
       
       try {
+        console.log('Loading client with ID:', clientId);
+        
         // Load client details
         const clientRes = await fetch(`http://localhost:5000/api/clients/${clientId}`, {
-          signal: controller.signal
+          signal: controller.signal,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
-        if (!clientRes.ok) throw new Error('Client not found');
+        console.log('Client response status:', clientRes.status);
+        console.log('Client response headers:', Object.fromEntries(clientRes.headers.entries()));
+        
+        if (!clientRes.ok) {
+          const errorText = await clientRes.text();
+          console.error('Client fetch failed:', clientRes.status, errorText);
+          throw new Error(`Failed to load client: ${clientRes.status} - ${errorText}`);
+        }
+        
         const clientData = await clientRes.json();
+        console.log('Client data received:', clientData);
         setClient(clientData);
 
         // Load portfolio data
@@ -92,13 +107,15 @@ export default function ClientDetailPage() {
 
   if (loading) {
     return (
-      <div className="container-fluid py-4">
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-          <div className="text-center">
-            <div className="spinner-border text-primary mb-3" role="status">
-              <span className="visually-hidden">Loading...</span>
+      <div className="bg-light min-vh-100">
+        <div className="container-xxl px-4 py-5">
+          <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+            <div className="text-center">
+              <div className="spinner-border text-primary mb-3" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="text-muted">Loading client details...</p>
             </div>
-            <p className="text-muted">Loading client details...</p>
           </div>
         </div>
       </div>
@@ -107,53 +124,57 @@ export default function ClientDetailPage() {
 
   if (error) {
     return (
-      <div className="container-fluid py-4">
-        <div className="alert alert-danger">
-          <h5>Error Loading Client</h5>
-          <p className="mb-0">{error}</p>
-          <button className="btn btn-outline-danger mt-2" onClick={() => navigate('/')}>
-            ← Back to Client List
-          </button>
+      <div className="bg-light min-vh-100">
+        <div className="container-xxl px-4 py-5">
+          <div className="alert alert-danger">
+            <h5>Error Loading Client</h5>
+            <p className="mb-0">{error}</p>
+            <button className="btn btn-outline-danger mt-2" onClick={() => navigate('/')}>
+              ← Back to Client List
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container-fluid py-4 bg-light min-vh-100">
-      <div className="mb-3">
-        <button 
-          className="btn btn-outline-primary"
-          onClick={() => navigate('/')}
-        >
-          <i className="bi bi-arrow-left me-2"></i>
-          Back to Client Portfolio
-        </button>
-      </div>
+    <div className="bg-light min-vh-100">
+      <div className="container-xxl px-4 py-5">
+        <div className="mb-4">
+          <button 
+            className="btn btn-outline-primary"
+            onClick={() => navigate('/')}
+          >
+            <i className="bi bi-arrow-left me-2"></i>
+            Back to Client Portfolio
+          </button>
+        </div>
 
-      {client && (
-        <>
-          <ClientHeader client={client} />
-          
-          <div className="row g-4">
-            <div className="col-lg-8">
-              <ClientPortfolioOverview 
-                portfolio={portfolio} 
-                client={client}
-              />
-            </div>
+        {client && (
+          <>
+            <ClientHeader client={client} />
             
-            <div className="col-lg-4">
-              <AIRecommendations
-                recommendations={recommendations}
-                onAction={handleRecommendationAction}
-                onViewDetail={handleViewSuggestionDetail}
-                clientId={clientId}
-              />
+            <div className="row g-4">
+              <div className="col-lg-8">
+                <ClientPortfolioOverview 
+                  portfolio={portfolio} 
+                  client={client}
+                />
+              </div>
+              
+              <div className="col-lg-4">
+                <AIRecommendations
+                  recommendations={recommendations}
+                  onAction={handleRecommendationAction}
+                  onViewDetail={handleViewSuggestionDetail}
+                  clientId={clientId}
+                />
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

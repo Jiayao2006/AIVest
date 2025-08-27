@@ -10,7 +10,7 @@ const getRiskProfileColor = (risk) => {
 };
 
 export default function ClientHeader({ client }) {
-  const { name, aum, domicile, segments, riskProfile, keyContacts, description } = client;
+  const { id, name, phone, aum, domicile, segments, riskProfile, keyContacts, description } = client;
   
   return (
     <div className="card border-0 shadow-sm mb-4">
@@ -23,6 +23,16 @@ export default function ClientHeader({ client }) {
               </div>
               <div>
                 <h1 className="h3 fw-bold text-dark mb-1">{name}</h1>
+                <div className="d-flex align-items-center gap-3 mb-2">
+                  <span className="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">
+                    <i className="bi bi-hash me-1"></i>
+                    ID: {id?.toUpperCase()}
+                  </span>
+                  <span className="text-muted small">
+                    <i className="bi bi-telephone-fill me-1"></i>
+                    {phone}
+                  </span>
+                </div>
                 <p className="text-muted mb-0">{description}</p>
               </div>
             </div>
