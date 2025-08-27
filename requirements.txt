@@ -1,0 +1,34 @@
+# AIVest Banking Application Dependencies
+# This file lists all Node.js dependencies for the full-stack application
+
+# Backend Dependencies (Production)
+cors@^2.8.5
+express@^4.19.0
+
+# Frontend Dependencies (Production)
+bootstrap@^5.3.3
+react@^18.2.0
+react-dom@^18.2.0
+react-router-dom@^6.30.1
+
+# Development Dependencies
+concurrently@^8.2.2
+@vitejs/plugin-react@^4.0.0
+vite@^5.0.0
+
+# Node.js Runtime Requirements
+# Node.js version: >=18.0.0
+# npm version: >=8.0.0
+
+# Installation Commands:
+# Backend: npm install --prefix ./backend
+# Frontend: npm install --prefix ./frontend
+# All: npm run install:all
+
+# Build Commands:
+# Frontend Build: npm run build --prefix ./frontend
+# Full Build: npm run build
+
+# Start Commands:
+# Production: npm start --prefix ./backend
+# Development: npm run dev (runs both frontend and backend)
