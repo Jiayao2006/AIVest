@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navigation from '../components/Navigation.jsx';
 import ClientList from '../components/ClientList.jsx';
 import SearchBar from '../components/SearchBar.jsx';
 import KPIDashboard from '../components/KPIDashboard.jsx';
@@ -36,86 +37,214 @@ export default function ClientListPage() {
 
   useEffect(() => {
     const controller = new AbortController();
+    
+    // Enhanced fetch function with retry logic
+    async function fetchWithRetry(url, options, maxRetries = 3) {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        console.log(`🔄 Fetch attempt ${attempt}/${maxRetries} for ${url}`);
+        
+        try {
+          const response = await fetch(url, options);
+          console.log(`✅ Attempt ${attempt} successful:`, response.status);
+          return response;
+        } catch (error) {
+          console.log(`❌ Attempt ${attempt} failed:`, error.message);
+          
+          if (attempt === maxRetries) {
+            console.log(`🚫 All ${maxRetries} attempts failed`);
+            throw error;
+          }
+          
+          // Wait before retry (exponential backoff)
+          const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s...
+          console.log(`⏰ Waiting ${delay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
     async function load() {
-      console.log('🚀 ClientListPage: Starting client data load...');
+      console.log('\n🚀 === CLIENT FETCH OPERATION START ===');
+      console.log('⏰ Timestamp:', new Date().toISOString());
+      console.log('🌐 Current location:', window.location.href);
+      console.log('📍 Target API URL:', 'http://localhost:5000/api/clients');
+      
       setLoading(true); setError(null);
       
       const startTime = Date.now();
-      console.log('📡 Attempting to fetch clients from backend...');
-      console.log('🔗 URL:', 'http://localhost:5000/api/clients');
-      console.log('⏰ Start time:', new Date().toISOString());
+      const controller = new AbortController();
       
-      // Set a timeout for the fetch request
+      // Enhanced timeout with retry logic
       const timeoutId = setTimeout(() => {
-        console.log('⏰ TIMEOUT: Request taking too long, aborting...');
+        console.log('⏰ TIMEOUT: Request taking too long (>5s), aborting...');
         controller.abort();
       }, 5000); // 5 second timeout
       
       try {
-        console.log('📤 Sending fetch request...');
-        const res = await fetch('http://localhost:5000/api/clients', { 
+        console.log('📡 === NETWORK REQUEST DETAILS ===');
+        console.log('🔗 Method: GET');
+        console.log('🔗 URL: http://localhost:5000/api/clients');
+        console.log('🔗 Headers: Content-Type: application/json');
+        console.log('🔗 Credentials: include');
+        console.log('🔗 Signal: AbortController attached');
+        
+        // Pre-flight check - test if server is reachable
+        console.log('🔍 Pre-flight: Testing server connectivity...');
+        try {
+          const healthResponse = await fetch('http://localhost:5000/api/health', {
+            method: 'GET',
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' }
+          });
+          console.log('💓 Health check result:', healthResponse.status, healthResponse.statusText);
+        } catch (healthError) {
+          console.warn('💔 Health check failed, but continuing with main request:', healthError.message);
+        }
+        
+        console.log('📤 Sending main API request with retry logic...');
+        const res = await fetchWithRetry('http://localhost:5000/api/clients', { 
           signal: controller.signal,
           method: 'GET',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           }
-        });
+        }, 3); // 3 retry attempts
         
         const fetchTime = Date.now() - startTime;
         clearTimeout(timeoutId);
-        console.log(`✅ Fetch response received in ${fetchTime}ms`);
-        console.log('📊 Response status:', res.status);
+        
+        console.log('\n📥 === RESPONSE ANALYSIS ===');
+        console.log('⏱️ Response time:', fetchTime + 'ms');
+        console.log('📊 Status code:', res.status);
+        console.log('📊 Status text:', res.statusText);
         console.log('✅ Response ok:', res.ok);
-        console.log('📋 Response headers:', Object.fromEntries(res.headers.entries()));
+        console.log('🔍 Response type:', res.type);
+        console.log('🌐 Response URL:', res.url);
+        console.log('📋 Response headers:');
+        for (const [key, value] of res.headers.entries()) {
+          console.log(`   ${key}: ${value}`);
+        }
         
         if (!res.ok) {
           const errorText = await res.text();
-          console.error('❌ API Error Response:', errorText);
-          throw new Error(`API ${res.status}: ${errorText}`);
+          console.error('❌ === ERROR RESPONSE DETAILS ===');
+          console.error('📊 Status:', res.status, res.statusText);
+          console.error('📝 Error body:', errorText);
+          console.error('🔍 Response headers:', Object.fromEntries(res.headers.entries()));
+          throw new Error(`API ${res.status}: ${errorText || res.statusText}`);
         }
         
         console.log('📥 Parsing JSON response...');
         const data = await res.json();
-        console.log('✅ JSON parsed successfully');
-        console.log('📊 Received data type:', typeof data);
+        
+        console.log('\n✅ === SUCCESS RESPONSE DETAILS ===');
+        console.log('📊 Data type:', typeof data);
         console.log('📊 Is array:', Array.isArray(data));
         console.log('📊 Data length:', data?.length);
-        console.log('📋 First item sample:', data?.[0]);
+        console.log('📋 First item sample:', data?.[0] ? {
+          id: data[0].id,
+          name: data[0].name,
+          aum: data[0].aum,
+          domicile: data[0].domicile
+        } : 'No data');
         
         if (Array.isArray(data) && data.length) {
           console.log('✅ Setting clients from API - SUCCESS');
-          setClients(data);
+          
+          // Map aum to portfolioValue for consistency across the app
+          const clientsWithPortfolioValue = data.map(client => ({
+            ...client,
+            portfolioValue: client.aum * 1000000 // Convert millions to actual value
+          }));
+          
+          setClients(clientsWithPortfolioValue);
           setApiConnected(true);
           console.log('🔗 API connection status: CONNECTED');
+          console.log('💰 Portfolio values mapped from AUM (millions to actual)');
+          console.log('📊 Total clients loaded:', clientsWithPortfolioValue.length);
         } else {
           console.warn('⚠️ No valid data from API, using sample data');
-          setClients(sampleClients);
+          
+          // Enhanced sample data with portfolioValue
+          const enhancedSampleData = sampleClients.map(client => ({
+            ...client,
+            portfolioValue: client.aum * 1000000 // Convert millions to actual value
+          }));
+          
+          setClients(enhancedSampleData);
           setApiConnected(false);
           console.log('📁 Fallback to sample data, count:', sampleClients.length);
+          console.log('💰 Sample data enhanced with portfolio values');
         }
       } catch (e) {
         const fetchTime = Date.now() - startTime;
         clearTimeout(timeoutId);
-        console.error('❌ Fetch error occurred after', fetchTime + 'ms');
-        console.error('❌ Error type:', e.constructor.name);
-        console.error('❌ Error message:', e.message);
-        console.error('❌ Error stack:', e.stack);
         
+        console.error('\n🚨 === COMPREHENSIVE ERROR ANALYSIS ===');
+        console.error('⏱️ Error occurred after:', fetchTime + 'ms');
+        console.error('📊 Error type:', e.constructor.name);
+        console.error('📝 Error message:', e.message);
+        console.error('🔍 Error stack trace:');
+        console.error(e.stack);
+        
+        // Detailed error classification
         if (e.name === 'AbortError') {
-          console.log('⏰ Request was aborted (timeout or manual)');
+          console.log('⏰ === TIMEOUT ERROR ===');
+          console.log('🔍 Request was aborted due to timeout (>5s)');
+          console.log('💡 Possible causes: Server slow, network issues, server down');
         } else if (e.name === 'TypeError') {
-          console.log('🌐 Network error - possibly CORS or server down');
+          console.log('🌐 === NETWORK ERROR ===');
+          console.log('🔍 Network-related error detected');
+          console.log('💡 Possible causes: CORS, server down, wrong URL, firewall');
+          
+          // Additional network diagnostics
+          console.log('🔍 === NETWORK DIAGNOSTICS ===');
+          console.log('🌐 Current protocol:', window.location.protocol);
+          console.log('🏠 Current host:', window.location.host);
+          console.log('📍 Target host: localhost:5000');
+          console.log('🔒 Mixed content check:', window.location.protocol === 'https:' ? 'HTTPS→HTTP (blocked)' : 'OK');
+        } else if (e.message.includes('fetch')) {
+          console.log('📡 === FETCH API ERROR ===');
+          console.log('🔍 Fetch API specific error');
+          console.log('💡 Possible causes: Network failure, DNS issues, server rejection');
         } else {
-          console.log('🔍 Unknown error type');
+          console.log('❓ === UNKNOWN ERROR TYPE ===');
+          console.log('🔍 Unclassified error occurred');
+        }
+        
+        // Additional debugging attempts
+        try {
+          console.log('\n🔍 === ADDITIONAL DIAGNOSTICS ===');
+          console.log('🌐 Testing basic connectivity...');
+          
+          // Test if fetch API is available
+          console.log('📡 Fetch API available:', typeof fetch !== 'undefined');
+          
+          // Test basic network connectivity
+          const basicTest = await fetch('data:text/plain,test');
+          console.log('📊 Basic fetch test:', basicTest.ok ? 'PASS' : 'FAIL');
+          
+        } catch (diagError) {
+          console.error('🔍 Additional diagnostics failed:', diagError.message);
         }
         
         if (e.name !== 'AbortError') {
           const errorMsg = `Backend unavailable - using sample data. Error: ${e.message}`;
           setError(errorMsg);
-          setClients(sampleClients);
+          console.log('\n🔄 === FALLBACK TO SAMPLE DATA ===');
+          
+          // Enhanced sample data with portfolioValue
+          const enhancedSampleData = sampleClients.map(client => ({
+            ...client,
+            portfolioValue: client.aum * 1000000 // Convert millions to actual value
+          }));
+          
+          setClients(enhancedSampleData);
           setApiConnected(false);
           console.log('📁 Fallback to sample data due to error');
           console.log('📊 Sample data count:', sampleClients.length);
+          console.log('💰 Enhanced sample data with portfolio values');
+          console.log('🔗 API connection status: DISCONNECTED');
         }
       } finally {
         const totalTime = Date.now() - startTime;
@@ -258,16 +387,15 @@ export default function ClientListPage() {
   return (
     <div className="bg-light min-vh-100">
       <div className="container-xxl px-4 py-5">
+        <Navigation />
+        
         <header className="mb-5">
           <div className="d-flex align-items-center justify-content-between mb-2">
             <div className="d-flex align-items-center">
-              <div className="bg-primary rounded-circle p-2 me-3">
-                <i className="bi bi-briefcase-fill text-white fs-5"></i>
-              </div>
               <div>
-                <h1 className="h3 fw-bold text-dark mb-1">Client Portfolio</h1>
+                <h1 className="h3 fw-bold text-dark mb-1">Client Portfolio Dashboard</h1>
                 <p className="text-muted small mb-0">
-                  Relationship Manager Dashboard – High Net Worth Clients
+                  High Net Worth Client Management
                   <span className={`badge ms-2 ${apiConnected ? 'bg-success' : 'bg-warning'}`}>
                     {apiConnected ? 'API Connected' : 'Local Data'}
                   </span>
@@ -318,8 +446,42 @@ export default function ClientListPage() {
         clients={clients}
       />
       
-      {loading && <div className="alert alert-info py-2 small">Loading clients...</div>}
-      {error && <div className="alert alert-secondary py-2 small mb-2">{error}</div>}
+      {loading && (
+        <div className="alert alert-info py-2 small d-flex align-items-center">
+          <div className="spinner-border spinner-border-sm me-2" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          Loading clients from backend...
+        </div>
+      )}
+      
+      {error && (
+        <div className="alert alert-warning py-3 small mb-2">
+          <div className="d-flex align-items-start">
+            <i className="fas fa-exclamation-triangle me-2 text-warning"></i>
+            <div className="flex-grow-1">
+              <strong>Backend Connection Issue:</strong>
+              <div className="mt-1">{error}</div>
+              <div className="mt-2">
+                <small className="text-muted">
+                  • Using sample data for demonstration
+                  <br />
+                  • Check if backend server is running on port 5000
+                  <br />
+                  • Check browser console for detailed logs
+                </small>
+              </div>
+              <button 
+                className="btn btn-sm btn-outline-primary mt-2"
+                onClick={() => window.location.reload()}
+              >
+                <i className="fas fa-sync-alt me-1"></i>
+                Retry Connection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <ClientList 
         clients={filteredClients} 
         onDeleteClient={handleDeleteClient}

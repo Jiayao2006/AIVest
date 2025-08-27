@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Navigation from '../components/Navigation.jsx';
 
 export default function SuggestionDetailPage() {
   const { clientId, suggestionId } = useParams();
@@ -124,6 +125,8 @@ export default function SuggestionDetailPage() {
   return (
     <div className="bg-light min-vh-100">
       <div className="container-xxl px-4 py-5">
+        <Navigation />
+        
         <div className="mb-4">
         <button 
           className="btn btn-outline-primary"

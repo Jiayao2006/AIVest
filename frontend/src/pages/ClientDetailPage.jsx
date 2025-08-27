@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Navigation from '../components/Navigation.jsx';
 import ClientPortfolioOverview from '../components/ClientPortfolioOverview.jsx';
 import AIRecommendations from '../components/AIRecommendations.jsx';
 import ClientHeader from '../components/ClientHeader.jsx';
@@ -42,7 +43,15 @@ export default function ClientDetailPage() {
         
         const clientData = await clientRes.json();
         console.log('Client data received:', clientData);
-        setClient(clientData);
+        
+        // Add portfolioValue for consistency
+        const clientWithPortfolioValue = {
+          ...clientData,
+          portfolioValue: clientData.aum * 1000000 // Convert millions to actual value
+        };
+        
+        setClient(clientWithPortfolioValue);
+        console.log('💰 Client portfolio value mapped from AUM:', clientWithPortfolioValue.portfolioValue);
 
         // Load portfolio data
         const portfolioRes = await fetch(`http://localhost:5000/api/clients/${clientId}/portfolio`, {
@@ -141,6 +150,8 @@ export default function ClientDetailPage() {
   return (
     <div className="bg-light min-vh-100">
       <div className="container-xxl px-4 py-5">
+        <Navigation />
+        
         <div className="mb-4">
           <button 
             className="btn btn-outline-primary"
