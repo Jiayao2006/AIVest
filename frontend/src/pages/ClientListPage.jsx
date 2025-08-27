@@ -70,7 +70,85 @@ export default function ClientListPage() {
       }
     }
     async function load() {
-      console.log('\n🚀 === CLIENT FETCH OPERATION START ===');
+      useEffect(() => {
+    console.log('🚀 ClientListPage mounting - initializing with sample data first');
+    
+    // ALWAYS start with sample data to ensure something shows
+    const enhancedSampleData = sampleClients.map(client => ({
+      ...client,
+      portfolioValue: client.aum * 1000000
+    }));
+    
+    setClients(enhancedSampleData);
+    setDataLoaded(true);
+    setApiConnected(false);
+    console.log('✅ Sample data loaded immediately:', enhancedSampleData.length, 'clients');
+    
+    // Now try to enhance with API data
+    const controller = new AbortController();
+    
+    async function tryApiLoad() {
+      console.log('🔄 === ATTEMPTING API ENHANCEMENT ===');
+      console.log('📍 API Base:', API_BASE);
+      console.log('🌐 Current hostname:', window.location.hostname);
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const apiUrl = `${API_BASE}/api/clients`;
+        console.log('📡 Fetching from:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          signal: controller.signal,
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        console.log('📊 Response status:', response.status);
+        console.log('📊 Response ok:', response.ok);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ API data received:', data.length, 'clients');
+          
+          if (Array.isArray(data) && data.length > 0) {
+            const clientsWithPortfolioValue = data.map(client => ({
+              ...client,
+              portfolioValue: client.aum * 1000000
+            }));
+            
+            setClients(clientsWithPortfolioValue);
+            setApiConnected(true);
+            setError(null);
+            console.log('🎉 Successfully switched to API data');
+          }
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+      } catch (error) {
+        console.warn('🔧 API enhancement failed, keeping sample data:', error.message);
+        setError(`API connection failed: ${error.message}. Using local sample data.`);
+        setApiConnected(false);
+        // Keep sample data that was already loaded
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    // Try API after a short delay to let sample data render first
+    setTimeout(tryApiLoad, 100);
+    
+    return () => {
+      console.log('🧹 Cleanup: Aborting API requests');
+      controller.abort();
+    };
+  }, [API_BASE]);
       console.log('⏰ Timestamp:', new Date().toISOString());
       console.log('🌐 Current location:', window.location.href);
       console.log('📍 Target API URL:', `${API_BASE}/api/clients`);

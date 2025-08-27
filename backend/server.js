@@ -15,8 +15,9 @@ console.log('🔧 Environment:', process.env.NODE_ENV || 'development');
 // CORS Configuration (dynamic)
 const baseAllowedOrigins = new Set([
   'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:3000'
+  'http://localhost:5174', 
+  'http://localhost:3000',
+  'https://aivest-7otb.onrender.com'
 ]);
 
 // Optionally allow an explicit PROD_ORIGIN env (comma-separated)
@@ -26,24 +27,32 @@ if (process.env.PROD_ORIGINS) {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow non-browser or same-origin (no origin header) requests
+    console.log('🔍 CORS Check - Origin:', origin || 'none');
+    
+    // Allow non-browser or same-origin (no origin header) requests  
     if (!origin) {
+      console.log('✅ CORS: Allowing same-origin request');
       return callback(null, true);
     }
+    
     if (baseAllowedOrigins.has(origin)) {
+      console.log('✅ CORS: Origin in allowed list');
       return callback(null, true);
     }
-    // In production, permissively allow any https origin unless explicitly blocked
-    if (process.env.NODE_ENV === 'production') {
-      console.log('🌐 (CORS) Allowing origin in production (not on list):', origin);
+    
+    // In production, be permissive with HTTPS origins
+    if (process.env.NODE_ENV === 'production' && origin.startsWith('https://')) {
+      console.log('✅ CORS: Allowing HTTPS origin in production:', origin);
       return callback(null, true);
     }
-    console.warn('🚫 (CORS) Blocked origin:', origin);
-    callback(new Error('CORS not allowed from origin: ' + origin));
+    
+    console.warn('🚫 CORS: Blocking origin:', origin);
+    callback(null, false); // Don't throw error, just deny
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  optionsSuccessStatus: 200
 };
 
 app.use((req, res, next) => {
