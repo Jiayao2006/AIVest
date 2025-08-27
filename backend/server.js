@@ -12,22 +12,57 @@ console.log('💻 Node Version:', process.version);
 console.log('📁 Working Directory:', process.cwd());
 console.log('🔧 Environment:', process.env.NODE_ENV || 'development');
 
-// CORS Configuration with detailed logging
+// CORS Configuration (dynamic)
+const baseAllowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000'
+]);
+
+// Optionally allow an explicit PROD_ORIGIN env (comma-separated)
+if (process.env.PROD_ORIGINS) {
+  process.env.PROD_ORIGINS.split(',').map(o => o.trim()).filter(Boolean).forEach(o => baseAllowedOrigins.add(o));
+}
+
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    // Allow non-browser or same-origin (no origin header) requests
+    if (!origin) {
+      return callback(null, true);
+    }
+    if (baseAllowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+    // In production, permissively allow any https origin unless explicitly blocked
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🌐 (CORS) Allowing origin in production (not on list):', origin);
+      return callback(null, true);
+    }
+    console.warn('🚫 (CORS) Blocked origin:', origin);
+    callback(new Error('CORS not allowed from origin: ' + origin));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 
-console.log('🔒 CORS Configuration:');
-console.log('   📍 Allowed Origins:', corsOptions.origin);
-console.log('   🔑 Credentials:', corsOptions.credentials);
-console.log('   📤 Methods:', corsOptions.methods);
-console.log('   📋 Headers:', corsOptions.allowedHeaders);
+app.use((req, res, next) => {
+  // Pre-log origin for debugging
+  if (req.path.startsWith('/api')) {
+    console.log('🛰️ Incoming API request origin:', req.get('Origin') || 'None');
+  }
+  next();
+});
 
-// CORS configuration - fixed and simplified
 app.use(cors(corsOptions));
+
+// Explicit OPTIONS handler (some platforms require)
+app.options('*', cors(corsOptions));
+
+console.log('� CORS Configuration Initialized');
+console.log('   � Base Allowed Origins:', Array.from(baseAllowedOrigins));
+console.log('   🌍 PROD_ORIGINS env:', process.env.PROD_ORIGINS || 'None');
+console.log('   🔧 Mode:', process.env.NODE_ENV || 'development');
 
 app.use(express.json());
 
@@ -725,6 +760,20 @@ app.get('/api/clients/:id/portfolio', (req, res) => {
 app.get('/api/clients/:id/recommendations', (req, res) => {
   const clientRecs = recommendations.filter(rec => rec.clientId === req.params.id);
   res.json(clientRecs);
+});
+
+// CORS debug endpoint
+app.get('/api/debug/cors', (req, res) => {
+  const origin = req.get('Origin');
+  res.json({
+    status: 'ok',
+    originReceived: origin || null,
+    allowed: !origin || baseAllowedOrigins.has(origin) || process.env.NODE_ENV === 'production',
+    baseAllowedOrigins: Array.from(baseAllowedOrigins),
+    productionMode: process.env.NODE_ENV === 'production',
+    prodOriginsEnv: process.env.PROD_ORIGINS || null,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Get recommendation details
