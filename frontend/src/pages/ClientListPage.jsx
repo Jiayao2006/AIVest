@@ -14,6 +14,7 @@ import { useClientFiltering } from '../hooks/useClientFiltering.js';
 export default function ClientListPage() {
   const [query, setQuery] = useState('');
   const [clients, setClients] = useState([]);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -158,6 +159,7 @@ export default function ClientListPage() {
           }));
           
           setClients(clientsWithPortfolioValue);
+          setDataLoaded(true);
           setApiConnected(true);
           console.log('🔗 API connection status: CONNECTED');
           console.log('💰 Portfolio values mapped from AUM (millions to actual)');
@@ -172,6 +174,7 @@ export default function ClientListPage() {
           }));
           
           setClients(enhancedSampleData);
+          setDataLoaded(true);
           setApiConnected(false);
           console.log('📁 Fallback to sample data, count:', sampleClients.length);
           console.log('💰 Sample data enhanced with portfolio values');
@@ -240,6 +243,7 @@ export default function ClientListPage() {
           }));
           
           setClients(enhancedSampleData);
+          setDataLoaded(true);
           setApiConnected(false);
           console.log('📁 Fallback to sample data due to error');
           console.log('📊 Sample data count:', sampleClients.length);
@@ -483,7 +487,9 @@ export default function ClientListPage() {
         </div>
       )}
       <ClientList 
-        clients={filteredClients} 
+        clients={filteredClients}
+        loading={loading}
+        dataLoaded={dataLoaded}
         onDeleteClient={handleDeleteClient}
         onScheduleCall={handleScheduleCall}
         onSendMessage={handleSendMessage}
