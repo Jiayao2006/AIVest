@@ -26,29 +26,7 @@ if (process.env.PROD_ORIGINS) {
 }
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    console.log('🔍 CORS Check - Origin:', origin || 'none');
-    
-    // Allow non-browser or same-origin (no origin header) requests  
-    if (!origin) {
-      console.log('✅ CORS: Allowing same-origin request');
-      return callback(null, true);
-    }
-    
-    if (baseAllowedOrigins.has(origin)) {
-      console.log('✅ CORS: Origin in allowed list');
-      return callback(null, true);
-    }
-    
-    // In production, be permissive with HTTPS origins
-    if (process.env.NODE_ENV === 'production' && origin.startsWith('https://')) {
-      console.log('✅ CORS: Allowing HTTPS origin in production:', origin);
-      return callback(null, true);
-    }
-    
-    console.warn('🚫 CORS: Blocking origin:', origin);
-    callback(null, false); // Don't throw error, just deny
-  },
+  origin: true, // Temporarily allow all origins for debugging
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
@@ -84,13 +62,10 @@ app.use((req, res, next) => {
   console.log('   📋 Content-Type:', req.get('Content-Type') || 'None');
   console.log('   🔑 Authorization:', req.get('Authorization') ? 'Present' : 'None');
   
-  // Log response
+  // Simplified response logging to avoid potential recursion issues
   const originalSend = res.send;
   res.send = function(data) {
-    console.log(`   ✅ Response ${res.statusCode} sent (${data?.length || 0} chars)`);
-    if (res.statusCode >= 400) {
-      console.log('   ❌ Error Response Body:', data);
-    }
+    console.log(`   ✅ Response ${res.statusCode} sent (${typeof data === 'string' ? data.length : 'object'} chars)`);
     return originalSend.call(this, data);
   };
   
@@ -935,7 +910,7 @@ const server = app.listen(PORT, () => {
   console.log('   📊 Analytics: /api/analytics/summary');
   console.log('   🔧 Network Debug: /api/debug/network');
   console.log('   🧪 Test Endpoint: /api/test');
-  console.log('🔒 CORS Origins:', corsOptions.origin.join(', '));
+  console.log('🔒 CORS Origins:', Array.from(baseAllowedOrigins));
   console.log(`📊 Initial Client Count: ${clients.length}`);
   console.log(`⏰ Started at: ${new Date().toISOString()}`);
   console.log('🎯 Ready for connections!');

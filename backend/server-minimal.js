@@ -1,25 +1,19 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const PORT = 5000; // Use the expected port
+const PORT = 5000;
 
-console.log('🚀 Starting Working Simple Server on port 5000...');
+console.log('🚀 Starting MINIMAL AIVest Backend Server...');
 
-// Simple CORS setup
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
-  credentials: true
-}));
-
+// Ultra-simple CORS and middleware
+app.use(cors());
 app.use(express.json());
-
-// Simple logging
 app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.path} - ${new Date().toISOString()}`);
+  console.log(`${req.method} ${req.path}`);
   next();
 });
 
-// Full sample clients data to match frontend expectations
+// Complete sample client data
 const clients = [
   { id: 'c001', name: 'Elena Rossi-Marchetti', phone: '+41 22 999 1234', aum: 860, domicile: 'Switzerland', segments: ['Family Office','Wealth Preservation'], keyContacts:['Elena Rossi'], description:'Multi-generational family wealth focused on capital preservation and sustainable investments.', riskProfile: 'Conservative' },
   { id: 'c002', name: 'Daniel Chen', phone: '+1 415 555 0187', aum: 1250, domicile: 'United States', segments: ['Tech Entrepreneur','Growth'], keyContacts:['Daniel Lee'], description:'Tech founder post-IPO, diversifying proceeds into low-volatility and impact strategies.', riskProfile: 'Moderate' },
@@ -33,89 +27,41 @@ const clients = [
   { id: 'c010', name: 'James Wellington III', phone: '+44 20 7555 6293', aum: 1890, domicile: 'United Kingdom', segments: ['Inherited Wealth','Hedge Funds'], keyContacts:['James Wellington'], description:'Third-generation wealth with focus on alternative investments and tax optimization.', riskProfile: 'Aggressive' }
 ];
 
-// Basic endpoints
+// API Routes
 app.get('/api/health', (req, res) => {
-  console.log('💓 Health check requested');
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 app.get('/api/clients', (req, res) => {
-  console.log('👥 Clients requested - returning', clients.length, 'clients');
   res.json(clients);
 });
 
 app.get('/api/clients/:id', (req, res) => {
-  console.log('👤 Client requested:', req.params.id);
   const client = clients.find(c => c.id === req.params.id);
-  if (!client) {
-    console.log('❌ Client not found:', req.params.id);
-    return res.status(404).json({ error: 'Client not found' });
-  }
-  console.log('✅ Client found:', client.name);
+  if (!client) return res.status(404).json({ error: 'Client not found' });
   res.json(client);
 });
 
 app.get('/api/clients/:id/portfolio', (req, res) => {
-  console.log('📊 Portfolio requested for:', req.params.id);
   const client = clients.find(c => c.id === req.params.id);
-  if (!client) {
-    return res.status(404).json({ error: 'Client not found' });
-  }
+  if (!client) return res.status(404).json({ error: 'Client not found' });
   
-  // Generate portfolio data based on client AUM
-  const portfolio = {
+  res.json({
     totalValue: client.aum * 1000000,
-    allocation: {
-      equity: 60,
-      bonds: 30,
-      alternatives: 10
-    },
+    allocation: { equity: 60, bonds: 30, alternatives: 10 },
     holdings: [
       { name: 'Global Equity Fund', value: client.aum * 600000, percentage: 60 },
       { name: 'Government Bonds', value: client.aum * 300000, percentage: 30 },
       { name: 'Alternative Investments', value: client.aum * 100000, percentage: 10 }
     ]
-  };
-  res.json(portfolio);
+  });
 });
 
 app.get('/api/clients/:id/recommendations', (req, res) => {
-  console.log('🤖 Recommendations requested for:', req.params.id);
-  // Return empty array for now
   res.json([]);
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('❌ Server error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`✅ Working server running on http://localhost:${PORT}`);
-  console.log('📋 Endpoints available:');
-  console.log('  - GET /api/health');
-  console.log('  - GET /api/clients');
-  console.log('  - GET /api/clients/:id');
-  console.log('  - GET /api/clients/:id/portfolio');
-  console.log('  - GET /api/clients/:id/recommendations');
-  console.log('🎯 Ready for frontend connections!');
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down gracefully...');
-  server.close(() => {
-    console.log('✅ Server closed successfully');
-    process.exit(0);
-  });
-});
-
-process.on('SIGTERM', () => {
-  console.log('\n🛑 SIGTERM received. Shutting down gracefully...');
-  server.close(() => {
-    console.log('✅ Server closed successfully');
-    process.exit(0);
-  });
+app.listen(PORT, () => {
+  console.log(`✅ MINIMAL Server running on http://localhost:${PORT}`);
+  console.log('📋 Endpoints: /api/health, /api/clients, /api/clients/:id, /api/clients/:id/portfolio, /api/clients/:id/recommendations');
 });

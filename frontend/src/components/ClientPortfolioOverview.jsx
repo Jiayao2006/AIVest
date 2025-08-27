@@ -12,8 +12,11 @@ export default function ClientPortfolioOverview({ portfolio, client }) {
       </div>
     );
   }
-
-  const { allocations, performance, totalValue, lastUpdated } = portfolio;
+  // Normalize possible legacy / fallback shapes
+  const allocations = portfolio.allocations || portfolio.allocation || [];
+  const performance = portfolio.performance || { ytd: 0, oneYear: 0 };
+  const totalValue = portfolio.totalValue ?? (client?.portfolioValue ? (client.portfolioValue / 1_000_000) : 0);
+  const lastUpdated = portfolio.lastUpdated || new Date().toISOString();
 
   const getAllocationColor = (type) => {
     const colors = {

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation.jsx';
 import ClientPortfolioOverview from '../components/ClientPortfolioOverview.jsx';
 import AIRecommendations from '../components/AIRecommendations.jsx';
 import ClientHeader from '../components/ClientHeader.jsx';
+import { sampleClients, generateSamplePortfolio, generateSampleRecommendations } from '../data/clients';
 
 export default function ClientDetailPage() {
   const { clientId } = useParams();
@@ -13,6 +14,14 @@ export default function ClientDetailPage() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [usingSample, setUsingSample] = useState(false);
+
+  const API_BASE = useMemo(() => {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return '';
+    }
+    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -22,27 +31,32 @@ export default function ClientDetailPage() {
       setError(null);
       
       try {
-        console.log('Loading client with ID:', clientId);
+        console.log('🔍 Loading client with ID:', clientId);
+        console.log('🌐 Using API_BASE:', API_BASE);
         
-        // Load client details
-        const clientRes = await fetch(`http://localhost:5000/api/clients/${clientId}`, {
+  // Load client details
+        const clientUrl = `${API_BASE}/api/clients/${clientId}`;
+        console.log('📡 Fetching client from:', clientUrl);
+        
+        const clientRes = await fetch(clientUrl, {
           signal: controller.signal,
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include'
         });
-        console.log('Client response status:', clientRes.status);
-        console.log('Client response headers:', Object.fromEntries(clientRes.headers.entries()));
+        console.log('📊 Client response status:', clientRes.status);
+        console.log('📊 Client response headers:', Object.fromEntries(clientRes.headers.entries()));
         
-        if (!clientRes.ok) {
+  if (!clientRes.ok) {
           const errorText = await clientRes.text();
-          console.error('Client fetch failed:', clientRes.status, errorText);
+          console.error('❌ Client fetch failed:', clientRes.status, errorText);
           throw new Error(`Failed to load client: ${clientRes.status} - ${errorText}`);
         }
         
         const clientData = await clientRes.json();
-        console.log('Client data received:', clientData);
+        console.log('✅ Client data received:', clientData);
         
         // Add portfolioValue for consistency
         const clientWithPortfolioValue = {
@@ -54,26 +68,54 @@ export default function ClientDetailPage() {
         console.log('💰 Client portfolio value mapped from AUM:', clientWithPortfolioValue.portfolioValue);
 
         // Load portfolio data
-        const portfolioRes = await fetch(`http://localhost:5000/api/clients/${clientId}/portfolio`, {
-          signal: controller.signal
+        const portfolioUrl = `${API_BASE}/api/clients/${clientId}/portfolio`;
+        console.log('📊 Fetching portfolio from:', portfolioUrl);
+        
+        const portfolioRes = await fetch(portfolioUrl, {
+          signal: controller.signal,
+          credentials: 'include'
         });
         if (portfolioRes.ok) {
           const portfolioData = await portfolioRes.json();
+          console.log('✅ Portfolio data received:', portfolioData);
           setPortfolio(portfolioData);
+        } else {
+          console.warn('⚠️ Portfolio fetch failed:', portfolioRes.status);
+          // fallback populate
+          setPortfolio(generateSamplePortfolio(clientData));
+          setUsingSample(true);
         }
 
-        // Load AI recommendations
-        const recsRes = await fetch(`http://localhost:5000/api/clients/${clientId}/recommendations`, {
-          signal: controller.signal
+        // Load AI recommendations  
+        const recsUrl = `${API_BASE}/api/clients/${clientId}/recommendations`;
+        console.log('🤖 Fetching recommendations from:', recsUrl);
+        
+        const recsRes = await fetch(recsUrl, {
+          signal: controller.signal,
+          credentials: 'include'
         });
         if (recsRes.ok) {
           const recsData = await recsRes.json();
+          console.log('✅ Recommendations data received:', recsData);
           setRecommendations(recsData);
+        } else {
+          console.warn('⚠️ Recommendations fetch failed:', recsRes.status);
+          setRecommendations(generateSampleRecommendations(clientData));
+          setUsingSample(true);
         }
 
       } catch (e) {
         if (e.name !== 'AbortError') {
-          setError(e.message);
+          console.warn('⚠️ API connection failed:', e.message, '-> using sample data');
+          const sampleClient = sampleClients.find(c => c.id === clientId);
+          if (!sampleClient) {
+            setError(`Client with ID ${clientId} not found`);
+          } else {
+            setClient({ ...sampleClient, portfolioValue: sampleClient.aum * 1000000 });
+            setPortfolio(generateSamplePortfolio(sampleClient));
+            setRecommendations(generateSampleRecommendations(sampleClient));
+            setUsingSample(true);
+          }
         }
       } finally {
         setLoading(false);
@@ -85,17 +127,22 @@ export default function ClientDetailPage() {
     }
 
     return () => controller.abort();
-  }, [clientId]);
+  }, [clientId, API_BASE]);
 
   const handleRecommendationAction = async (recId, action, notes = '') => {
     try {
-      const response = await fetch(`http://localhost:5000/api/recommendations/${recId}/action`, {
+      const actionUrl = `${API_BASE}/api/recommendations/${recId}/action`;
+      console.log('🎯 Updating recommendation action:', actionUrl);
+      
+      const response = await fetch(actionUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, notes })
+        body: JSON.stringify({ action, notes }),
+        credentials: 'include'
       });
 
       if (response.ok) {
+        console.log('✅ Recommendation action updated successfully');
         // Update local state
         setRecommendations(prev => 
           prev.map(rec => 
@@ -104,9 +151,11 @@ export default function ClientDetailPage() {
               : rec
           )
         );
+      } else {
+        console.warn('⚠️ Recommendation action update failed:', response.status);
       }
     } catch (error) {
-      console.error('Failed to update recommendation:', error);
+      console.error('❌ Failed to update recommendation:', error);
     }
   };
 
@@ -152,7 +201,7 @@ export default function ClientDetailPage() {
       <div className="container-xxl px-4 py-5">
         <Navigation />
         
-        <div className="mb-4">
+        <div className="mb-4 d-flex align-items-center justify-content-between">
           <button 
             className="btn btn-outline-primary"
             onClick={() => navigate('/')}
@@ -160,6 +209,11 @@ export default function ClientDetailPage() {
             <i className="bi bi-arrow-left me-2"></i>
             Back to Client Portfolio
           </button>
+          {usingSample && (
+            <span className="badge bg-warning text-dark">
+              Using Sample Data
+            </span>
+          )}
         </div>
 
         {client && (

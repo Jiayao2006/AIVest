@@ -44,8 +44,6 @@ export default function ClientListPage() {
 
   useEffect(() => {
     console.log('🚀 ClientListPage mounting - initializing with sample data first');
-    console.log('🌍 Current environment - hostname:', window.location.hostname);
-    console.log('🌍 Computed API_BASE:', API_BASE);
     
     // ALWAYS start with sample data to ensure something shows
     const enhancedSampleData = sampleClients.map(client => ({
@@ -65,7 +63,6 @@ export default function ClientListPage() {
       console.log('\n🔄 === ATTEMPTING API ENHANCEMENT ===');
       console.log('📍 API Base:', API_BASE);
       console.log('🌐 Current hostname:', window.location.hostname);
-      console.log('⏰ Timestamp:', new Date().toISOString());
       
       setLoading(true);
       setError(null);
@@ -73,7 +70,6 @@ export default function ClientListPage() {
       try {
         const apiUrl = `${API_BASE}/api/clients`;
         console.log('📡 Fetching from:', apiUrl);
-        console.log('🔧 Fetch options: method=GET, credentials=include, signal=AbortController');
         
         const response = await fetch(apiUrl, {
           method: 'GET',
@@ -87,8 +83,6 @@ export default function ClientListPage() {
         
         console.log('📊 Response status:', response.status);
         console.log('📊 Response ok:', response.ok);
-        console.log('📊 Response type:', response.type);
-        console.log('📊 Response url:', response.url);
         
         if (response.ok) {
           const data = await response.json();
@@ -102,12 +96,8 @@ export default function ClientListPage() {
             
             setClients(clientsWithPortfolioValue);
             setApiConnected(true);
-            setError(null); // Clear any previous errors
-            console.log('🎉 Successfully switched to API data - clearing error state');
-          } else {
-            console.warn('⚠️ API returned empty or invalid data, keeping sample data');
-            setApiConnected(false);
-            setError('API returned empty data. Using local sample data.');
+            setError(null);
+            console.log('🎉 Successfully switched to API data');
           }
         } else {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -131,6 +121,189 @@ export default function ClientListPage() {
       controller.abort();
     };
   }, [API_BASE]);
+
+  // Save searches to localStorage whenever they change
+  useEffect(() => {
+        
+        // Pre-flight check - test if server is reachable
+        console.log('🔍 Pre-flight: Testing server connectivity...');
+        try {
+          const healthResponse = await fetch(`${API_BASE}/api/health`, {
+            method: 'GET',
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' }
+          });
+          console.log('💓 Health check result:', healthResponse.status, healthResponse.statusText);
+        } catch (healthError) {
+          console.warn('💔 Health check failed, but continuing with main request:', healthError.message);
+        }
+        
+        console.log('📤 Sending main API request with retry logic...');
+  const res = await fetchWithRetry(`${API_BASE}/api/clients`, { 
+          signal: controller.signal,
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }, 3); // 3 retry attempts
+        
+        const fetchTime = Date.now() - startTime;
+        clearTimeout(timeoutId);
+        
+        console.log('\n📥 === RESPONSE ANALYSIS ===');
+        console.log('⏱️ Response time:', fetchTime + 'ms');
+        console.log('📊 Status code:', res.status);
+        console.log('📊 Status text:', res.statusText);
+        console.log('✅ Response ok:', res.ok);
+        console.log('🔍 Response type:', res.type);
+        console.log('🌐 Response URL:', res.url);
+        console.log('📋 Response headers:');
+        for (const [key, value] of res.headers.entries()) {
+          console.log(`   ${key}: ${value}`);
+        }
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('❌ === ERROR RESPONSE DETAILS ===');
+          console.error('📊 Status:', res.status, res.statusText);
+          console.error('📝 Error body:', errorText);
+          console.error('🔍 Response headers:', Object.fromEntries(res.headers.entries()));
+          throw new Error(`API ${res.status}: ${errorText || res.statusText}`);
+        }
+        
+        console.log('📥 Parsing JSON response...');
+        const data = await res.json();
+        
+        console.log('\n✅ === SUCCESS RESPONSE DETAILS ===');
+        console.log('📊 Data type:', typeof data);
+        console.log('📊 Is array:', Array.isArray(data));
+        console.log('📊 Data length:', data?.length);
+        console.log('📋 First item sample:', data?.[0] ? {
+          id: data[0].id,
+          name: data[0].name,
+          aum: data[0].aum,
+          domicile: data[0].domicile
+        } : 'No data');
+        
+        if (Array.isArray(data) && data.length) {
+          console.log('✅ Setting clients from API - SUCCESS');
+          
+          // Map aum to portfolioValue for consistency across the app
+          const clientsWithPortfolioValue = data.map(client => ({
+            ...client,
+            portfolioValue: client.aum * 1000000 // Convert millions to actual value
+          }));
+          
+          setClients(clientsWithPortfolioValue);
+          setDataLoaded(true);
+          setApiConnected(true);
+          console.log('🔗 API connection status: CONNECTED');
+          console.log('💰 Portfolio values mapped from AUM (millions to actual)');
+          console.log('📊 Total clients loaded:', clientsWithPortfolioValue.length);
+        } else {
+          console.warn('⚠️ No valid data from API, using sample data');
+          
+          // Enhanced sample data with portfolioValue
+          const enhancedSampleData = sampleClients.map(client => ({
+            ...client,
+            portfolioValue: client.aum * 1000000 // Convert millions to actual value
+          }));
+          
+          setClients(enhancedSampleData);
+          setDataLoaded(true);
+          setApiConnected(false);
+          console.log('📁 Fallback to sample data, count:', sampleClients.length);
+          console.log('💰 Sample data enhanced with portfolio values');
+        }
+      } catch (e) {
+        const fetchTime = Date.now() - startTime;
+        clearTimeout(timeoutId);
+        
+        console.error('\n🚨 === COMPREHENSIVE ERROR ANALYSIS ===');
+        console.error('⏱️ Error occurred after:', fetchTime + 'ms');
+        console.error('📊 Error type:', e.constructor.name);
+        console.error('📝 Error message:', e.message);
+        console.error('🔍 Error stack trace:');
+        console.error(e.stack);
+        
+        // Detailed error classification
+        if (e.name === 'AbortError') {
+          console.log('⏰ === TIMEOUT ERROR ===');
+          console.log('🔍 Request was aborted due to timeout (>5s)');
+          console.log('💡 Possible causes: Server slow, network issues, server down');
+        } else if (e.name === 'TypeError') {
+          console.log('🌐 === NETWORK ERROR ===');
+          console.log('🔍 Network-related error detected');
+          console.log('💡 Possible causes: CORS, server down, wrong URL, firewall');
+          
+          // Additional network diagnostics
+          console.log('🔍 === NETWORK DIAGNOSTICS ===');
+          console.log('🌐 Current protocol:', window.location.protocol);
+          console.log('🏠 Current host:', window.location.host);
+          console.log('📍 Target host: localhost:5000');
+          console.log('🔒 Mixed content check:', window.location.protocol === 'https:' ? 'HTTPS→HTTP (blocked)' : 'OK');
+        } else if (e.message.includes('fetch')) {
+          console.log('📡 === FETCH API ERROR ===');
+          console.log('🔍 Fetch API specific error');
+          console.log('💡 Possible causes: Network failure, DNS issues, server rejection');
+        } else {
+          console.log('❓ === UNKNOWN ERROR TYPE ===');
+          console.log('🔍 Unclassified error occurred');
+        }
+        
+        // Additional debugging attempts
+        try {
+          console.log('\n🔍 === ADDITIONAL DIAGNOSTICS ===');
+          console.log('🌐 Testing basic connectivity...');
+          
+          // Test if fetch API is available
+          console.log('📡 Fetch API available:', typeof fetch !== 'undefined');
+          
+          // Test basic network connectivity
+          const basicTest = await fetch('data:text/plain,test');
+          console.log('📊 Basic fetch test:', basicTest.ok ? 'PASS' : 'FAIL');
+          
+        } catch (diagError) {
+          console.error('🔍 Additional diagnostics failed:', diagError.message);
+        }
+        
+        if (e.name !== 'AbortError') {
+          const errorMsg = `Backend unavailable - using sample data. Error: ${e.message}`;
+          setError(errorMsg);
+          console.log('\n🔄 === FALLBACK TO SAMPLE DATA ===');
+          
+          // Enhanced sample data with portfolioValue
+          const enhancedSampleData = sampleClients.map(client => ({
+            ...client,
+            portfolioValue: client.aum * 1000000 // Convert millions to actual value
+          }));
+          
+          setClients(enhancedSampleData);
+          setDataLoaded(true);
+          setApiConnected(false);
+          console.log('📁 Fallback to sample data due to error');
+          console.log('📊 Sample data count:', sampleClients.length);
+          console.log('💰 Enhanced sample data with portfolio values');
+          console.log('🔗 API connection status: DISCONNECTED');
+        }
+      } finally {
+        const totalTime = Date.now() - startTime;
+        setLoading(false);
+        console.log(`🏁 Load process completed in ${totalTime}ms`);
+        console.log('📊 Final state - API Connected:', apiConnected);
+        console.log('📊 Final state - Client count:', clients.length);
+        console.log('📊 Final state - Loading:', false);
+        console.log('📊 Final state - Error:', error || 'None');
+        console.log('================================');
+      }
+    }
+    load();
+    return () => {
+      console.log('🧹 Cleanup: Aborting any pending requests');
+      controller.abort();
+    };
+  }, []);
 
   // Save searches to localStorage whenever they change
   useEffect(() => {
