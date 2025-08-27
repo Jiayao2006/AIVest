@@ -35,7 +35,6 @@ export default function ClientListPage() {
     const saved = localStorage.getItem('aivest-saved-searches');
     return saved ? JSON.parse(saved) : [];
   });
-  const [dataLoaded, setDataLoaded] = useState(false);
   const API_BASE = useMemo(() => {
     if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
       return '';
