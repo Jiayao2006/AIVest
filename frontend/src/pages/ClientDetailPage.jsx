@@ -150,14 +150,40 @@ export default function ClientDetailPage() {
 
       if (response.ok) {
         console.log('✅ Recommendation action updated successfully');
-        // Update local state
-        setRecommendations(prev => 
-          prev.map(rec => 
-            rec.id === recId 
-              ? { ...rec, status: action, actionDate: new Date().toISOString(), notes }
-              : rec
-          )
-        );
+        
+        // Refresh recommendations from server to ensure synchronization
+        console.log('🔄 Refreshing recommendations to maintain sync...');
+        try {
+          const recResponse = await fetch(`${API_BASE}/api/clients/${clientId}/recommendations`, {
+            credentials: 'include'
+          });
+          
+          if (recResponse.ok) {
+            const freshRecommendations = await recResponse.json();
+            setRecommendations(freshRecommendations);
+            console.log('✅ Recommendations refreshed from server');
+          } else {
+            console.warn('⚠️ Failed to refresh recommendations, using local update');
+            // Fallback to local state update if server refresh fails
+            setRecommendations(prev => 
+              prev.map(rec => 
+                rec.id === recId 
+                  ? { ...rec, status: action, actionDate: new Date().toISOString(), notes }
+                  : rec
+              )
+            );
+          }
+        } catch (refreshError) {
+          console.error('❌ Failed to refresh recommendations:', refreshError);
+          // Fallback to local state update
+          setRecommendations(prev => 
+            prev.map(rec => 
+              rec.id === recId 
+                ? { ...rec, status: action, actionDate: new Date().toISOString(), notes }
+                : rec
+            )
+          );
+        }
       } else {
         console.warn('⚠️ Recommendation action update failed:', response.status);
       }
