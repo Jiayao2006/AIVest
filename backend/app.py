@@ -672,16 +672,17 @@ def debug_cors():
         'corsEnabled': True
     })
 
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    """Health check endpoint for monitoring services"""
-    return jsonify({
-        'status': 'healthy',
-        'service': 'AIVest Flask Backend',
-        'timestamp': datetime.now().isoformat(),
-        'environment': os.getenv('FLASK_ENV', 'development'),
-        'version': '1.1.0'
-    })
+# This endpoint is already defined above - commenting out to avoid duplicate
+# @app.route('/api/health', methods=['GET'])
+# def health_check():
+#     """Health check endpoint for monitoring services"""
+#     return jsonify({
+#         'status': 'healthy',
+#         'service': 'AIVest Flask Backend',
+#         'timestamp': datetime.now().isoformat(),
+#         'environment': os.getenv('FLASK_ENV', 'development'),
+#         'version': '1.1.0'
+#     })
 
 @app.route('/api/debug/network', methods=['GET'])
 def debug_network():
