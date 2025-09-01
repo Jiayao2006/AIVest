@@ -1,10 +1,10 @@
 import React from 'react';
 
-export default function SavedSearches({ searches, onLoadSearch, onSaveSearch, onDeleteSearch, currentQuery, currentFilters }) {
+export default function SavedSearches({ savedSearches, onLoad, onSave, onDelete, currentQuery, currentFilters }) {
   const handleSaveCurrentSearch = () => {
     const name = prompt('Enter a name for this search:');
     if (name) {
-      onSaveSearch(name, currentQuery, currentFilters);
+      onSave(name, currentQuery, currentFilters);
     }
   };
 
@@ -31,15 +31,15 @@ export default function SavedSearches({ searches, onLoadSearch, onSaveSearch, on
           )}
         </div>
 
-        {searches.length === 0 ? (
+        {savedSearches.length === 0 ? (
           <p className="text-muted small mb-0">No saved searches yet. Apply filters and save your search.</p>
         ) : (
           <div className="d-flex flex-wrap gap-2">
-            {searches.map((search, index) => (
+            {savedSearches.map((search, index) => (
               <div key={index} className="d-flex align-items-center bg-light rounded px-2 py-1">
                 <button
                   className="btn btn-sm btn-link p-0 text-decoration-none me-2"
-                  onClick={() => onLoadSearch(search)}
+                  onClick={() => onLoad(search)}
                   title={`Query: "${search.query}" | Filters: ${Object.keys(search.filters).length}`}
                 >
                   <i className="bi bi-search me-1"></i>
@@ -47,7 +47,7 @@ export default function SavedSearches({ searches, onLoadSearch, onSaveSearch, on
                 </button>
                 <button
                   className="btn btn-sm p-0 text-danger"
-                  onClick={() => onDeleteSearch(index)}
+                  onClick={() => onDelete(index)}
                   title="Delete saved search"
                 >
                   <i className="bi bi-x"></i>

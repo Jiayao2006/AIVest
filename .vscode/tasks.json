@@ -4,7 +4,7 @@
 		{
 			"label": "backend:start",
 			"type": "shell",
-			"command": "cd backend && npm start",
+			"command": "cd backend && python app.py",
 			"isBackground": true,
 			"problemMatcher": []
 		},
@@ -13,6 +13,13 @@
 			"type": "shell",
 			"command": "cd frontend && npm run dev",
 			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "install:backend",
+			"type": "shell",
+			"command": "cd backend && pip install -r requirements.txt",
+			"group": "build",
 			"problemMatcher": []
 		}
 	]

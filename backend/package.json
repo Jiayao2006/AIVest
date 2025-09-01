@@ -1,19 +1,16 @@
 {
-  "name": "aivest-backend",
+  "name": "aivest-backend-flask",
   "version": "1.0.0",
-  "description": "AIVest Backend (Express API)",
-  "main": "server.js",
-  "type": "commonjs",
+  "description": "AIVest Backend (Flask API)",
+  "main": "app.py",
+  "type": "module",
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "python": ">=3.8.0"
   },
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "python app.py",
+    "dev": "python app.py",
+    "install": "pip install -r requirements.txt"
   },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.19.0"
-  }
+  "dependencies": {}
 }

@@ -5,6 +5,7 @@ import ClientPortfolioOverview from '../components/ClientPortfolioOverview.jsx';
 import AIRecommendations from '../components/AIRecommendations.jsx';
 import ClientHeader from '../components/ClientHeader.jsx';
 import { sampleClients, generateSamplePortfolio, generateSampleRecommendations } from '../data/clients';
+import { API_BASE_URL, apiRequest, API_ENDPOINTS } from '../config/api.js';
 
 export default function ClientDetailPage() {
   const { clientId } = useParams();
@@ -16,16 +17,6 @@ export default function ClientDetailPage() {
   const [error, setError] = useState(null);
   const [usingSample, setUsingSample] = useState(false);
 
-  const API_BASE = useMemo(() => {
-    if (typeof window === 'undefined') return 'http://localhost:5000';
-    const host = window.location.hostname;
-    const devHosts = new Set(['localhost', '127.0.0.1']);
-    if (devHosts.has(host)) {
-      return import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:5000';
-    }
-    return '';
-  }, []);
-
   useEffect(() => {
     const controller = new AbortController();
     
@@ -35,30 +26,14 @@ export default function ClientDetailPage() {
       
       try {
         console.log('🔍 Loading client with ID:', clientId);
-        console.log('🌐 Using API_BASE:', API_BASE);
+        console.log('🌐 Using API_BASE:', API_BASE_URL);
         
-  // Load client details
-        const clientUrl = `${API_BASE}/api/clients/${clientId}`;
-        console.log('📡 Fetching client from:', clientUrl);
-        
-        const clientRes = await fetch(clientUrl, {
+        // Load client details
+        const clientData = await apiRequest(API_ENDPOINTS.clientById(clientId), {
           signal: controller.signal,
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include'
         });
-        console.log('📊 Client response status:', clientRes.status);
-        console.log('📊 Client response headers:', Object.fromEntries(clientRes.headers.entries()));
+          credentials: 'include'
         
-  if (!clientRes.ok) {
-          const errorText = await clientRes.text();
-          console.error('❌ Client fetch failed:', clientRes.status, errorText);
-          throw new Error(`Failed to load client: ${clientRes.status} - ${errorText}`);
-        }
-        
-        const clientData = await clientRes.json();
         console.log('✅ Client data received:', clientData);
         
         // Add portfolioValue for consistency
@@ -71,40 +46,30 @@ export default function ClientDetailPage() {
         console.log('💰 Client portfolio value mapped from AUM:', clientWithPortfolioValue.portfolioValue);
 
         // Load portfolio data
-        const portfolioUrl = `${API_BASE}/api/clients/${clientId}/portfolio`;
-        console.log('📊 Fetching portfolio from:', portfolioUrl);
-        
-        const portfolioRes = await fetch(portfolioUrl, {
-          signal: controller.signal,
-          credentials: 'include'
-        });
-        if (portfolioRes.ok) {
-          const portfolioData = await portfolioRes.json();
+        try {
+          const portfolioData = await apiRequest(API_ENDPOINTS.clientPortfolio(clientId), {
+            signal: controller.signal,
+          });
           console.log('✅ Portfolio data received:', portfolioData);
           setPortfolio(portfolioData);
-        } else {
-          console.warn('⚠️ Portfolio fetch failed:', portfolioRes.status);
+        } catch (portfolioError) {
+          console.warn('⚠️ Portfolio fetch failed:', portfolioError.message);
           // fallback populate
           setPortfolio(generateSamplePortfolio(clientData));
           setUsingSample(true);
         }
 
         // Load AI recommendations  
-        const recsUrl = `${API_BASE}/api/clients/${clientId}/recommendations`;
-        console.log('🤖 Fetching recommendations from:', recsUrl);
-        
-        const recsRes = await fetch(recsUrl, {
-          signal: controller.signal,
-          credentials: 'include'
-        });
-        if (recsRes.ok) {
-          const recsData = await recsRes.json();
+        try {
+          const recsData = await apiRequest(API_ENDPOINTS.clientRecommendations(clientId), {
+            signal: controller.signal,
+          });
           console.log('✅ Recommendations data received:', recsData);
           console.log('📊 Recommendations count:', recsData.length);
           console.log('📝 First recommendation structure:', recsData[0]);
           setRecommendations(recsData);
-        } else {
-          console.warn('⚠️ Recommendations fetch failed:', recsRes.status);
+        } catch (recsError) {
+          console.warn('⚠️ Recommendations fetch failed:', recsError.message);
           const sampleRecs = generateSampleRecommendations(clientData);
           console.log('🔄 Using sample recommendations:', sampleRecs);
           setRecommendations(sampleRecs);
@@ -134,58 +99,33 @@ export default function ClientDetailPage() {
     }
 
     return () => controller.abort();
-  }, [clientId, API_BASE]);
+  }, [clientId]);
 
   const handleRecommendationAction = async (recId, action, notes = '') => {
     try {
-      const actionUrl = `${API_BASE}/api/recommendations/${recId}/action`;
-      console.log('🎯 Updating recommendation action:', actionUrl);
-      
-      const response = await fetch(actionUrl, {
+      const response = await apiRequest(API_ENDPOINTS.recommendationAction(recId), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, notes }),
-        credentials: 'include'
       });
 
-      if (response.ok) {
-        console.log('✅ Recommendation action updated successfully');
-        
-        // Refresh recommendations from server to ensure synchronization
-        console.log('🔄 Refreshing recommendations to maintain sync...');
-        try {
-          const recResponse = await fetch(`${API_BASE}/api/clients/${clientId}/recommendations`, {
-            credentials: 'include'
-          });
-          
-          if (recResponse.ok) {
-            const freshRecommendations = await recResponse.json();
-            setRecommendations(freshRecommendations);
-            console.log('✅ Recommendations refreshed from server');
-          } else {
-            console.warn('⚠️ Failed to refresh recommendations, using local update');
-            // Fallback to local state update if server refresh fails
-            setRecommendations(prev => 
-              prev.map(rec => 
-                rec.id === recId 
-                  ? { ...rec, status: action, actionDate: new Date().toISOString(), notes }
-                  : rec
-              )
-            );
-          }
-        } catch (refreshError) {
-          console.error('❌ Failed to refresh recommendations:', refreshError);
-          // Fallback to local state update
-          setRecommendations(prev => 
-            prev.map(rec => 
-              rec.id === recId 
-                ? { ...rec, status: action, actionDate: new Date().toISOString(), notes }
-                : rec
-            )
-          );
-        }
-      } else {
-        console.warn('⚠️ Recommendation action update failed:', response.status);
+      console.log('✅ Recommendation action updated successfully');
+      
+      // Refresh recommendations from server to ensure synchronization
+      console.log('🔄 Refreshing recommendations to maintain sync...');
+      try {
+        const freshRecommendations = await apiRequest(API_ENDPOINTS.clientRecommendations(clientId));
+        setRecommendations(freshRecommendations);
+        console.log('✅ Recommendations refreshed from server');
+      } catch (refreshError) {
+        console.error('❌ Failed to refresh recommendations:', refreshError);
+        // Fallback to local state update
+        setRecommendations(prev => 
+          prev.map(rec => 
+            rec.id === recId 
+              ? { ...rec, status: action, actionDate: new Date().toISOString(), notes }
+              : rec
+          )
+        );
       }
     } catch (error) {
       console.error('❌ Failed to update recommendation:', error);

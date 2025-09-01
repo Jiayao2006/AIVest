@@ -3,8 +3,8 @@ import Navigation from '../components/Navigation.jsx';
 import ClientList from '../components/ClientList.jsx';
 import SearchBar from '../components/SearchBar.jsx';
 import KPIDashboard from '../components/KPIDashboard.jsx';
-import AdvancedFilters from '../components/AdvancedFilters_new.jsx';
-import SavedSearches from '../components/SavedSearches_new.jsx';
+import AdvancedFilters from '../components/AdvancedFilters.jsx';
+import SavedSearches from '../components/SavedSearches.jsx';
 import AddClientModal from '../components/AddClientModal.jsx';
 import ScheduleCallModal from '../components/ScheduleCallModal.jsx';
 import SendMessageModal from '../components/SendMessageModal.jsx';
@@ -272,62 +272,62 @@ export default function ClientListPage() {
 
             <KPIDashboard clients={filteredClients} />
 
-            <div className="card mb-4">
-              <div className="card-body">
-                <h6 className="card-title mb-3">Search & Filters</h6>
-                <div className="row">
-                  <div className="col-lg-4 mb-3">
+            <div className="row g-4">
+              <div className="col-lg-3">
+                <div className="card">
+                  <div className="card-body">
+                    <h6 className="card-title mb-3">Search & Filters</h6>
                     <SearchBar 
                       query={query} 
                       onQueryChange={setQuery}
                       placeholder="Search clients..."
                     />
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="d-flex flex-wrap gap-3">
-                      <AdvancedFilters 
-                        filters={filters}
-                        onFiltersChange={setFilters}
-                        clients={clients}
-                      />
-                      <SavedSearches
-                        savedSearches={savedSearches}
-                        onSave={handleSaveSearch}
-                        onLoad={handleLoadSearch}
-                        onDelete={handleDeleteSearch}
-                        currentQuery={query}
-                        currentFilters={filters}
-                      />
-                    </div>
+                    <hr />
+                    <AdvancedFilters 
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      clients={clients}
+                    />
+                    <hr />
+                    <SavedSearches
+                      savedSearches={savedSearches}
+                      onSave={handleSaveSearch}
+                      onLoad={handleLoadSearch}
+                      onDelete={handleDeleteSearch}
+                      currentQuery={query}
+                      currentFilters={filters}
+                    />
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="card">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6 className="card-title mb-0">
-                    Client List 
-                    {filteredClients.length !== clients.length && (
-                      <span className="text-muted ms-2">
-                        ({filteredClients.length} of {clients.length})
-                      </span>
-                    )}
-                  </h6>
-                  {loading && (
-                    <div className="spinner-border spinner-border-sm text-primary" role="status">
-                      <span className="visually-hidden">Loading...</span>
+              
+              <div className="col-lg-9">
+                <div className="card">
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="card-title mb-0">
+                        Client List 
+                        {filteredClients.length !== clients.length && (
+                          <span className="text-muted ms-2">
+                            ({filteredClients.length} of {clients.length})
+                          </span>
+                        )}
+                      </h6>
+                      {loading && (
+                        <div className="spinner-border spinner-border-sm text-primary" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                    
+                    <ClientList 
+                      clients={filteredClients}
+                      onScheduleCall={handleScheduleCall}
+                      onSendMessage={handleSendMessage}
+                      onDeleteClient={handleClientDelete}
+                    />
+                  </div>
                 </div>
-                
-                <ClientList 
-                  clients={filteredClients}
-                  onScheduleCall={handleScheduleCall}
-                  onSendMessage={handleSendMessage}
-                  onDeleteClient={handleClientDelete}
-                />
               </div>
             </div>
           </div>

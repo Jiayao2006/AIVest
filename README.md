@@ -69,7 +69,7 @@ User Opens App
 └─────────────────────────────────────┘
                     ↕ HTTP/REST API
 ┌─────────────────────────────────────┐
-│           Backend (Node.js)         │
+│           Backend (Flask)           │
 │  ┌─────────────────────────────────┐│
 │  │       API Endpoints             ││
 │  │  • /api/clients                 ││
@@ -174,10 +174,10 @@ git --version
    cd ..
    ```
 
-2. **Install backend dependencies**:
+2. **Install backend dependencies (Python Flask)**:
    ```bash
    cd backend
-   npm install
+   pip install -r requirements.txt
    cd ..
    ```
 
@@ -185,19 +185,21 @@ git --version
 
 You'll need to run both the backend server and frontend application. Open **two separate terminal/command prompt windows**:
 
-#### Terminal 1 - Start the Backend Server:
+#### Terminal 1 - Start the Backend Server (Flask):
 ```bash
 cd backend
-node server.js
+python app.py
 ```
 
 You should see:
 ```
 🎉 =================================
-🚀 AIVest Banking Server Started!
+🚀 AIVest Banking Server Started (Flask)!
 🎉 =================================
 🌐 Server URL: http://localhost:5000
 📊 Initial Client Count: 10
+🤖 Initial Recommendations: 3
+💼 Available Portfolios: 3
 🎯 Ready for connections!
 =================================
 ```
@@ -235,7 +237,7 @@ You should see:
 
 2. **🚀 Running the App**
    - Open TWO terminal windows
-   - Start backend server first (Terminal 1): `cd backend && node server.js`
+   - Start backend server first (Terminal 1): `cd backend && python app.py`
    - Start frontend app second (Terminal 2): `cd frontend && npm run dev`
    - Both must run simultaneously for full functionality
 
@@ -260,9 +262,9 @@ You should see:
 
 #### Option 1: Full Local Development
 ```bash
-# Terminal 1 - Backend
+# Terminal 1 - Backend (Flask)
 cd backend
-node server.js
+python app.py
 
 # Terminal 2 - Frontend  
 cd frontend
@@ -479,16 +481,17 @@ AIVest/
 │   ├── src/           # Source code
 │   ├── public/        # Static assets
 │   └── package.json   # Frontend dependencies
-├── backend/           # Node.js + Express backend server
-│   ├── server.js      # Main server file
-│   └── package.json   # Backend dependencies
+├── backend/           # Python + Flask backend server
+│   ├── app.py         # Main Flask server file
+│   ├── requirements.txt # Python dependencies
+│   └── package.json   # Legacy Node.js config (for Render)
 └── README.md          # This file
 ```
 
 ## 🎨 Key Technologies
 
 - **Frontend**: React 18, Vite, Bootstrap 5, React Router
-- **Backend**: Node.js, Express, CORS
+- **Backend**: Python 3.12, Flask 3.0, Flask-CORS
 - **Data**: In-memory storage (easily replaceable with database)
 - **Styling**: Bootstrap with custom banking theme
 

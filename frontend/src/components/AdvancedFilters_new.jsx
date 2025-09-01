@@ -94,82 +94,73 @@ export default function AdvancedFilters({ filters, onFiltersChange, clients }) {
                   onChange={e => handleFilterChange('sortBy', e.target.value)}
                 >
                   <option value="name">Name</option>
-                    <option value="aum">AUM</option>
-                    <option value="domicile">Domicile</option>
-                    <option value="riskProfile">Risk Profile</option>
-                  </select>
-                </div>
-                <div className="col-4">
-                  <select
-                    className="form-select form-select-sm"
-                    value={filters.sortOrder || 'asc'}
-                    onChange={e => handleFilterChange('sortOrder', e.target.value)}
-                  >
-                    <option value="asc">↑ Asc</option>
-                    <option value="desc">↓ Desc</option>
-                  </select>
-                </div>
+                  <option value="aum">AUM</option>
+                  <option value="domicile">Domicile</option>
+                  <option value="lastContact">Last Contact</option>
+                </select>
+                <select
+                  className="form-select"
+                  value={filters.sortOrder || 'asc'}
+                  onChange={e => handleFilterChange('sortOrder', e.target.value)}
+                >
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
               </div>
             </div>
 
-            {/* Segments */}
-            <div className="col-md-4">
-              <label className="form-label small fw-semibold text-muted">Segments</label>
-              <div className="max-height-150 overflow-auto border rounded p-2 bg-light">
+            {/* Client Segments */}
+            <div className="col-md-4 col-lg-2">
+              <label className="form-label small fw-semibold text-muted">Client Segments</label>
+              <div className="d-flex flex-wrap gap-1">
                 {uniqueSegments.map(segment => (
-                  <div key={segment} className="form-check form-check-sm">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`segment-${segment}`}
-                      checked={(filters.segments || []).includes(segment)}
-                      onChange={() => handleMultiSelectChange('segments', segment)}
-                    />
-                    <label className="form-check-label small" htmlFor={`segment-${segment}`}>
-                      {segment}
-                    </label>
+                  <div 
+                    key={segment} 
+                    className={`badge ${(filters.segments || []).includes(segment) 
+                      ? 'bg-primary' 
+                      : 'bg-light text-dark border'}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleMultiSelectChange('segments', segment)}
+                  >
+                    {segment}
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Domiciles */}
-            <div className="col-md-4">
+            <div className="col-md-4 col-lg-2">
               <label className="form-label small fw-semibold text-muted">Domiciles</label>
-              <div className="max-height-150 overflow-auto border rounded p-2 bg-light">
+              <div className="d-flex flex-wrap gap-1">
                 {uniqueDomiciles.map(domicile => (
-                  <div key={domicile} className="form-check form-check-sm">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`domicile-${domicile}`}
-                      checked={(filters.domiciles || []).includes(domicile)}
-                      onChange={() => handleMultiSelectChange('domiciles', domicile)}
-                    />
-                    <label className="form-check-label small" htmlFor={`domicile-${domicile}`}>
-                      {domicile}
-                    </label>
+                  <div
+                    key={domicile}
+                    className={`badge ${(filters.domiciles || []).includes(domicile) 
+                      ? 'bg-primary' 
+                      : 'bg-light text-dark border'}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleMultiSelectChange('domiciles', domicile)}
+                  >
+                    {domicile}
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Risk Profiles */}
-            <div className="col-md-4">
+            <div className="col-md-4 col-lg-2">
               <label className="form-label small fw-semibold text-muted">Risk Profiles</label>
-              <div className="max-height-150 overflow-auto border rounded p-2 bg-light">
+              <div className="d-flex flex-wrap gap-1">
                 {riskProfiles.map(risk => (
-                  <div key={risk} className="form-check form-check-sm">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`risk-${risk}`}
-                      checked={(filters.riskProfiles || []).includes(risk)}
-                      onChange={() => handleMultiSelectChange('riskProfiles', risk)}
-                    />
-                    <label className="form-check-label small" htmlFor={`risk-${risk}`}>
-                      {risk}
-                    </label>
+                  <div
+                    key={risk}
+                    className={`badge ${(filters.riskProfiles || []).includes(risk) 
+                      ? 'bg-primary' 
+                      : 'bg-light text-dark border'}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleMultiSelectChange('riskProfiles', risk)}
+                  >
+                    {risk}
                   </div>
                 ))}
               </div>
