@@ -5,15 +5,29 @@ import os
 import json
 import re
 
-app = Flask(__name__, static_folder='../frontend/dist')
+# Determine if we're in production
+is_production = os.environ.get('FLASK_ENV') == 'production'
 
-# CORS Configuration - matching your Express setup
-CORS(app, origins=[
+# Configure static folder - in production, serve from the frontend build directory
+static_folder = '../frontend/dist' if is_production else None
+
+app = Flask(__name__, static_folder=static_folder)
+
+# CORS Configuration with dynamic origins
+allowed_origins = [
     'http://localhost:5173',
     'http://localhost:5174', 
     'http://localhost:3000',
     'https://aivest-7otb.onrender.com'
-], supports_credentials=True)
+]
+
+# Add any additional origins from environment variable
+if os.environ.get('ADDITIONAL_CORS_ORIGINS'):
+    for origin in os.environ.get('ADDITIONAL_CORS_ORIGINS').split(','):
+        if origin.strip():
+            allowed_origins.append(origin.strip())
+
+CORS(app, origins=allowed_origins, supports_credentials=True)
 
 # Enhanced logging - matching Express style
 print('🚀 Starting AIVest Banking Server (Flask)...')
@@ -22,10 +36,11 @@ print(f'🌐 Target Port: {os.getenv("PORT", 5000)}')
 print(f'💻 Python Version: {os.sys.version}')
 print(f'📁 Working Directory: {os.getcwd()}')
 print(f'🔧 Environment: {os.getenv("FLASK_ENV", "development")}')
+print(f'🔧 Production Mode: {is_production}')
 
 # CORS Configuration log
 print('🔧 CORS Configuration Initialized')
-print('   🌐 Base Allowed Origins: http://localhost:5173, https://aivest-7otb.onrender.com')
+print(f'   🌐 Allowed Origins: {", ".join(allowed_origins)}')
 print(f'   🔧 Mode: {os.getenv("FLASK_ENV", "development")}')
 
 # In-memory dataset - exact copy from your Express server
@@ -655,6 +670,17 @@ def debug_cors():
         'originReceived': origin,
         'timestamp': datetime.now().isoformat(),
         'corsEnabled': True
+    })
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint for monitoring services"""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'AIVest Flask Backend',
+        'timestamp': datetime.now().isoformat(),
+        'environment': os.getenv('FLASK_ENV', 'development'),
+        'version': '1.1.0'
     })
 
 @app.route('/api/debug/network', methods=['GET'])
