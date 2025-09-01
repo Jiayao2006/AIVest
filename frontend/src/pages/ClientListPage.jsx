@@ -37,9 +37,9 @@ export default function ClientListPage() {
   });
 
   useEffect(() => {
-    console.log('🚀 ClientListPage mounting - initializing with sample data first');
+    console.log('🚀 ClientListPage mounting - loading sample data only');
     
-    // ALWAYS start with sample data to ensure something shows
+    // Use sample data only (no API calls)
     const enhancedSampleData = sampleClients.map(client => ({
       ...client,
       portfolioValue: client.aum * 1000000
@@ -48,74 +48,7 @@ export default function ClientListPage() {
     setClients(enhancedSampleData);
     setDataLoaded(true);
     setApiConnected(false);
-    console.log('✅ Sample data loaded immediately:', enhancedSampleData.length, 'clients');
-    
-    // Now try to enhance with API data
-    const controller = new AbortController();
-    
-    async function tryApiLoad() {
-      console.log('\n🔄 === ATTEMPTING API ENHANCEMENT ===');
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      console.log('📍 API Base:', apiUrl);
-      console.log('🌐 Current hostname:', window.location.hostname);
-      console.log('⏰ Timestamp:', new Date().toISOString());
-      
-      setLoading(true);
-      setError(null);
-      
-      try {
-        const response = await fetch(`${apiUrl}/api/clients`, {
-          method: 'GET',
-          signal: controller.signal,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
-        
-        console.log('📊 Response status:', response.status);
-        console.log('📊 Response ok:', response.ok);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('✅ API data received:', data.length, 'clients');
-          
-          if (Array.isArray(data) && data.length > 0) {
-            const clientsWithPortfolioValue = data.map(client => ({
-              ...client,
-              portfolioValue: client.aum * 1000000
-            }));
-            
-            setClients(clientsWithPortfolioValue);
-            setApiConnected(true);
-            setError(null);
-            console.log('🎉 Successfully switched to API data - clearing error state');
-          } else {
-            console.warn('⚠️ API returned empty or invalid data, keeping sample data');
-            setApiConnected(false);
-            setError('API returned empty data. Using local sample data.');
-          }
-        } else {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-      } catch (error) {
-        console.warn('🔧 API enhancement failed, keeping sample data:', error.message);
-        setError(`API connection failed: ${error.message}. Using local sample data.`);
-        setApiConnected(false);
-        // Keep sample data that was already loaded
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    // Try API after a short delay to let sample data render first
-    setTimeout(tryApiLoad, 100);
-    
-    return () => {
-      console.log('🧹 Cleanup: Aborting API requests');
-      controller.abort();
-    };
+    console.log('✅ Sample data loaded:', enhancedSampleData.length, 'clients');
   }, []);
 
   // Save searches to localStorage whenever they change
@@ -158,73 +91,28 @@ export default function ClientListPage() {
     setShowMessageModal(true);
   };
 
-  const handleClientAdded = async (newClient) => {
+  const handleClientAdded = (newClient) => {
     console.log('🎉 New client added, updating list:', newClient);
     
-    try {
-      // Try to refresh from API
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/clients`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (response.ok) {
-        const refreshedClients = await response.json();
-        const clientsWithPortfolioValue = refreshedClients.map(client => ({
-          ...client,
-          portfolioValue: client.aum * 1000000
-        }));
-        setClients(clientsWithPortfolioValue);
-        console.log('✅ Client list refreshed from server');
-      } else {
-        // Fallback: add to local state
-        const clientWithPortfolioValue = {
-          ...newClient,
-          portfolioValue: newClient.aum * 1000000
-        };
-        setClients(prev => [...prev, clientWithPortfolioValue]);
-        console.log('⚠️ Server refresh failed, added to local state');
-      }
-    } catch (error) {
-      console.error('❌ Failed to refresh client list:', error);
-      // Fallback: add to local state
-      const clientWithPortfolioValue = {
-        ...newClient,
-        portfolioValue: newClient.aum * 1000000
-      };
-      setClients(prev => [...prev, clientWithPortfolioValue]);
-    }
+    // Simply add to local state without API call
+    const clientWithPortfolioValue = {
+      ...newClient,
+      id: Date.now().toString(), // Generate a unique ID
+      portfolioValue: newClient.aum * 1000000
+    };
+    
+    setClients(prev => [...prev, clientWithPortfolioValue]);
+    console.log('✅ Client added to local state');
   };
 
-  const handleClientDelete = async (clientId) => {
+  const handleClientDelete = (clientId) => {
     if (!confirm('Are you sure you want to delete this client?')) {
       return;
     }
 
-    try {
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/clients/${clientId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (response.ok) {
-        // Remove from local state
-        setClients(prev => prev.filter(client => client.id !== clientId));
-        console.log('✅ Client deleted successfully');
-      } else {
-        console.error('❌ Failed to delete client from server');
-        alert('Failed to delete client. Please try again.');
-      }
-    } catch (error) {
-      console.error('❌ Delete request failed:', error);
-      alert('Failed to delete client. Please try again.');
-    }
+    // Simply remove from local state without API call
+    setClients(prev => prev.filter(client => client.id !== clientId));
+    console.log('✅ Client deleted from local state');
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const getRecommendationIcon = (type) => {
   const icons = {
@@ -6,8 +6,6 @@ const getRecommendationIcon = (type) => {
     'diversify': 'bi-pie-chart',
     'hedge': 'bi-shield-check',
     'opportunity': 'bi-lightbulb',
-    'tax': 'bi-calculator',
-    'risk': 'bi-exclamation-triangle',
     'tax-optimization': 'bi-calculator',
     'risk-management': 'bi-exclamation-triangle'
   };
@@ -146,16 +144,11 @@ const defaultRecommendationDetail = {
   ]
 };
 
-export default function AIRecommendations({ recommendations, clientId }) {
+export default function AIRecommendations({ recommendations, clientName }) {
   const [actioningId, setActioningId] = useState(null);
   const [viewingDetail, setViewingDetail] = useState(null);
-  const [updatedRecommendations, setUpdatedRecommendations] = useState([]);
 
-  // Initialize updatedRecommendations when recommendations prop changes
-  useEffect(() => {
-    setUpdatedRecommendations(recommendations);
-  }, [recommendations]);
-
+  // Function to handle viewing recommendation details
   const handleViewDetail = (recId) => {
     // Use hardcoded data instead of API fetch
     setViewingDetail(hardcodedRecommendationDetails[recId] || {
@@ -164,15 +157,16 @@ export default function AIRecommendations({ recommendations, clientId }) {
     });
   };
 
+  // Function to handle recommendation actions
   const handleAction = (recId, action) => {
     setActioningId(recId);
     
-    // Update recommendation status locally
-    setUpdatedRecommendations(prev => 
-      prev.map(rec => rec.id === recId ? { ...rec, status: action } : rec)
+    // Update recommendation status locally without API calls
+    const updatedRecommendations = recommendations.map(rec => 
+      rec.id === recId ? { ...rec, status: action } : rec
     );
     
-    // Simulate API call completion
+    // Simulate async operation
     setTimeout(() => {
       setActioningId(null);
       
@@ -183,8 +177,8 @@ export default function AIRecommendations({ recommendations, clientId }) {
     }, 500);
   };
 
-  const pendingRecommendations = updatedRecommendations.filter(rec => rec.status === 'pending' || !rec.status);
-  const completedRecommendations = updatedRecommendations.filter(rec => rec.status && rec.status !== 'pending');
+  const pendingRecommendations = recommendations.filter(rec => rec.status === 'pending' || !rec.status);
+  const completedRecommendations = recommendations.filter(rec => rec.status && rec.status !== 'pending');
 
   return (
     <>
@@ -247,29 +241,16 @@ export default function AIRecommendations({ recommendations, clientId }) {
 
       {/* Recommendation Detail Modal */}
       {viewingDetail && (
-        <>
-          {/* Background overlay with blur effect */}
-          <div 
-            className="position-fixed top-0 start-0 w-100 h-100" 
-            style={{
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              backdropFilter: 'blur(5px)',
-              zIndex: 1040
-            }}
-            onClick={() => setViewingDetail(null)}
-          ></div>
-          
-          {/* Modal dialog */}
-          <div className="modal show d-block" style={{ zIndex: 1050 }} tabIndex="-1">
-            <div className="modal-dialog modal-dialog-centered modal-lg">
-              <div className="modal-content border-0 shadow-lg">
-                <div className="modal-header">
-                  <h5 className="modal-title">
-                    <i className={`${getRecommendationIcon(viewingDetail.type)} text-primary me-2`}></i>
-                    {viewingDetail.title}
-                  </h5>
-                  <button type="button" className="btn-close" onClick={() => setViewingDetail(null)}></button>
-                </div>
+        <div className="modal show d-block" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className={`${getRecommendationIcon(viewingDetail.type)} text-primary me-2`}></i>
+                  {viewingDetail.title}
+                </h5>
+                <button type="button" className="btn-close" onClick={() => setViewingDetail(null)}></button>
+              </div>
               <div className="modal-body">
                 <div className="d-flex justify-content-between mb-4">
                   <span className={`badge bg-${getPriorityColor(viewingDetail.priority)}`}>

@@ -146,7 +146,7 @@ const defaultRecommendationDetail = {
   ]
 };
 
-export default function AIRecommendations({ recommendations, clientId }) {
+export default function AIRecommendationsEnhanced({ recommendations, clientId }) {
   const [actioningId, setActioningId] = useState(null);
   const [viewingDetail, setViewingDetail] = useState(null);
   const [updatedRecommendations, setUpdatedRecommendations] = useState([]);
@@ -200,7 +200,7 @@ export default function AIRecommendations({ recommendations, clientId }) {
         </div>
         
         <div className="card-body">
-          {recommendations.length === 0 ? (
+          {updatedRecommendations.length === 0 ? (
             <div className="text-center py-4">
               <i className="bi bi-lightbulb text-muted display-4"></i>
               <p className="text-muted mt-2 mb-0">No recommendations available</p>
@@ -245,7 +245,7 @@ export default function AIRecommendations({ recommendations, clientId }) {
         </div>
       </div>
 
-      {/* Recommendation Detail Modal */}
+      {/* Recommendation Detail Modal with Blur Background */}
       {viewingDetail && (
         <>
           {/* Background overlay with blur effect */}
@@ -270,115 +270,116 @@ export default function AIRecommendations({ recommendations, clientId }) {
                   </h5>
                   <button type="button" className="btn-close" onClick={() => setViewingDetail(null)}></button>
                 </div>
-              <div className="modal-body">
-                <div className="d-flex justify-content-between mb-4">
-                  <span className={`badge bg-${getPriorityColor(viewingDetail.priority)}`}>
-                    {viewingDetail.priority} Priority
-                  </span>
-                  <span className="text-muted small">
-                    Created {new Date(viewingDetail.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
+                <div className="modal-body">
+                  <div className="d-flex justify-content-between mb-4">
+                    <span className={`badge bg-${getPriorityColor(viewingDetail.priority)}`}>
+                      {viewingDetail.priority} Priority
+                    </span>
+                    <span className="text-muted small">
+                      Created {new Date(viewingDetail.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
 
-                <p className="lead">{viewingDetail.summary}</p>
-                
-                <div className="row g-3 mb-4">
-                  <div className="col-md-4">
-                    <div className="card h-100">
-                      <div className="card-body">
-                        <h6 className="card-title">Confidence</h6>
-                        <h3 className="mb-0">{viewingDetail.confidence}%</h3>
+                  <p className="lead">{viewingDetail.summary}</p>
+                  
+                  <div className="row g-3 mb-4">
+                    <div className="col-md-4">
+                      <div className="card h-100">
+                        <div className="card-body">
+                          <h6 className="card-title">Confidence</h6>
+                          <h3 className="mb-0">{viewingDetail.confidence}%</h3>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="card h-100">
+                        <div className="card-body">
+                          <h6 className="card-title">Est. Impact</h6>
+                          <h3 className="mb-0">{viewingDetail.estimatedImpact}</h3>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="card h-100">
+                        <div className="card-body">
+                          <h6 className="card-title">Type</h6>
+                          <h3 className="mb-0 text-capitalize">{viewingDetail.type}</h3>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="col-md-4">
-                    <div className="card h-100">
-                      <div className="card-body">
-                        <h6 className="card-title">Est. Impact</h6>
-                        <h3 className="mb-0">{viewingDetail.estimatedImpact}</h3>
-                      </div>
+
+                  <h6>Detailed Description</h6>
+                  <p>{viewingDetail.detailedDescription}</p>
+
+                  <div className="row g-4 mt-2">
+                    <div className="col-md-4">
+                      <h6 className="text-success">Benefits</h6>
+                      <ul className="list-group list-group-flush">
+                        {viewingDetail.benefits?.map((benefit, index) => (
+                          <li key={index} className="list-group-item border-0 ps-0">
+                            <i className="bi bi-check-circle-fill text-success me-2"></i>
+                            {benefit}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card h-100">
-                      <div className="card-body">
-                        <h6 className="card-title">Type</h6>
-                        <h3 className="mb-0 text-capitalize">{viewingDetail.type}</h3>
-                      </div>
+                    <div className="col-md-4">
+                      <h6 className="text-danger">Risks</h6>
+                      <ul className="list-group list-group-flush">
+                        {viewingDetail.risks?.map((risk, index) => (
+                          <li key={index} className="list-group-item border-0 ps-0">
+                            <i className="bi bi-exclamation-circle-fill text-danger me-2"></i>
+                            {risk}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="col-md-4">
+                      <h6 className="text-primary">Implementation</h6>
+                      <ol className="list-group list-group-flush list-group-numbered">
+                        {viewingDetail.implementationSteps?.map((step, index) => (
+                          <li key={index} className="list-group-item border-0 ps-0">
+                            {step}
+                          </li>
+                        ))}
+                      </ol>
                     </div>
                   </div>
                 </div>
-
-                <h6>Detailed Description</h6>
-                <p>{viewingDetail.detailedDescription}</p>
-
-                <div className="row g-4 mt-2">
-                  <div className="col-md-4">
-                    <h6 className="text-success">Benefits</h6>
-                    <ul className="list-group list-group-flush">
-                      {viewingDetail.benefits?.map((benefit, index) => (
-                        <li key={index} className="list-group-item border-0 ps-0">
-                          <i className="bi bi-check-circle-fill text-success me-2"></i>
-                          {benefit}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="col-md-4">
-                    <h6 className="text-danger">Risks</h6>
-                    <ul className="list-group list-group-flush">
-                      {viewingDetail.risks?.map((risk, index) => (
-                        <li key={index} className="list-group-item border-0 ps-0">
-                          <i className="bi bi-exclamation-circle-fill text-danger me-2"></i>
-                          {risk}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="col-md-4">
-                    <h6 className="text-primary">Implementation</h6>
-                    <ol className="list-group list-group-flush list-group-numbered">
-                      {viewingDetail.implementationSteps?.map((step, index) => (
-                        <li key={index} className="list-group-item border-0 ps-0">
-                          {step}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
+                <div className="modal-footer">
+                  {viewingDetail.status !== 'approved' && viewingDetail.status !== 'rejected' && (
+                    <>
+                      <button 
+                        className="btn btn-danger" 
+                        onClick={() => {
+                          handleAction(viewingDetail.id, 'rejected');
+                          setViewingDetail(null);
+                        }}
+                      >
+                        <i className="bi bi-x-lg me-2"></i>
+                        Reject
+                      </button>
+                      <button 
+                        className="btn btn-success" 
+                        onClick={() => {
+                          handleAction(viewingDetail.id, 'approved');
+                          setViewingDetail(null);
+                        }}
+                      >
+                        <i className="bi bi-check-lg me-2"></i>
+                        Approve
+                      </button>
+                    </>
+                  )}
+                  <button className="btn btn-secondary" onClick={() => setViewingDetail(null)}>
+                    Close
+                  </button>
                 </div>
-              </div>
-              <div className="modal-footer">
-                {viewingDetail.status !== 'approved' && viewingDetail.status !== 'rejected' && (
-                  <>
-                    <button 
-                      className="btn btn-danger" 
-                      onClick={() => {
-                        handleAction(viewingDetail.id, 'rejected');
-                        setViewingDetail(null);
-                      }}
-                    >
-                      <i className="bi bi-x-lg me-2"></i>
-                      Reject
-                    </button>
-                    <button 
-                      className="btn btn-success" 
-                      onClick={() => {
-                        handleAction(viewingDetail.id, 'approved');
-                        setViewingDetail(null);
-                      }}
-                    >
-                      <i className="bi bi-check-lg me-2"></i>
-                      Approve
-                    </button>
-                  </>
-                )}
-                <button className="btn btn-secondary" onClick={() => setViewingDetail(null)}>
-                  Close
-                </button>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );

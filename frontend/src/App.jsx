@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import ClientListPage from './pages/ClientListPage.jsx';
-import ClientDetailPage from './pages/ClientDetailPage.jsx';
+import ClientDetailPage from './pages/ClientDetailPage_new.jsx';
 import SuggestionDetailPage from './pages/SuggestionDetailPage.jsx';
 import CallsPage from './pages/CallsPage.jsx';
 

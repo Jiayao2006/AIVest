@@ -30,6 +30,7 @@ A comprehensive relationship management platform designed for banking profession
 - **AI Recommendations**: Intelligent investment suggestions with detailed analysis
 - **Client Actions**: Schedule calls, send messages, and manage client relationships
 - **Professional Interface**: Modern, responsive design optimized for banking professionals
+- **Sample Data Mode**: Run application using only sample data without any backend dependencies
 
 ## 🏗️ System Architecture
 

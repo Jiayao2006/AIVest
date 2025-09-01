@@ -66,51 +66,50 @@ export default function ClientDetailPage() {
     }
   }, [clientId]);
 
-  const handleRecommendationAction = async (recId, action, notes = '') => {
-    try {
-      const response = await apiRequest(API_ENDPOINTS.recommendationAction(recId), {
-        method: 'POST',
-        body: JSON.stringify({ action, notes }),
-      });
-
-      console.log('✅ Recommendation action updated successfully');
-      
-      // Refresh recommendations from server to ensure synchronization
-      console.log('🔄 Refreshing recommendations to maintain sync...');
-      try {
-        const freshRecommendations = await apiRequest(API_ENDPOINTS.clientRecommendations(clientId));
-        setRecommendations(freshRecommendations);
-        console.log('✅ Recommendations refreshed from server');
-      } catch (refreshError) {
-        console.error('❌ Failed to refresh recommendations:', refreshError);
-        // Fallback to local state update
-        setRecommendations(prev => 
-          prev.map(rec => 
-            rec.id === recId 
-              ? { ...rec, status: action, actionDate: new Date().toISOString(), notes }
-              : rec
-          )
-        );
-      }
-    } catch (error) {
-      console.error('❌ Failed to update recommendation:', error);
+  // Safety check - redirect if client not found
+  useEffect(() => {
+    if (!loading && !client && error) {
+      setTimeout(() => navigate('/clients'), 3000);
     }
-  };
+  }, [loading, client, error, navigate]);
 
-  const handleViewSuggestionDetail = (recommendationId) => {
-    navigate(`/clients/${clientId}/suggestions/${recommendationId}`);
-  };
+  const totalValue = useMemo(() => {
+    if (!portfolio || !portfolio.allocations) return 0;
+    return portfolio.allocations.reduce((sum, allocation) => sum + allocation.value, 0);
+  }, [portfolio]);
+
+  const portfolioStats = useMemo(() => {
+    if (!portfolio || !portfolio.allocations || portfolio.allocations.length === 0) return {};
+    
+    // Calculate allocation percentages
+    const allocations = portfolio.allocations.map(item => ({
+      ...item,
+      percentage: (item.value / totalValue) * 100
+    }));
+
+    // Calculate performance stats
+    const yearlyPerformance = portfolio.yearlyPerformance || [];
+    const lastYearPerformance = yearlyPerformance.length > 0 ? yearlyPerformance[yearlyPerformance.length - 1].change : 0;
+    
+    return {
+      totalValue,
+      allocations,
+      yearlyPerformance,
+      lastYearPerformance
+    };
+  }, [portfolio, totalValue]);
 
   if (loading) {
     return (
-      <div className="bg-light min-vh-100">
-        <div className="container-xxl px-4 py-5">
-          <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+      <div className="min-vh-100 bg-light">
+        <Navigation />
+        <div className="container py-4">
+          <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
             <div className="text-center">
               <div className="spinner-border text-primary mb-3" role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
-              <p className="text-muted">Loading client details...</p>
+              <h5 className="text-muted">Loading client details...</h5>
             </div>
           </div>
         </div>
@@ -120,67 +119,57 @@ export default function ClientDetailPage() {
 
   if (error) {
     return (
-      <div className="bg-light min-vh-100">
-        <div className="container-xxl px-4 py-5">
+      <div className="min-vh-100 bg-light">
+        <Navigation />
+        <div className="container py-4">
           <div className="alert alert-danger">
-            <h5>Error Loading Client</h5>
-            <p className="mb-0">{error}</p>
-            <button className="btn btn-outline-danger mt-2" onClick={() => navigate('/')}>
-              ← Back to Client List
-            </button>
+            <h4 className="alert-heading">Error Loading Client</h4>
+            <p>{error}</p>
+            <hr />
+            <p className="mb-0">You will be redirected to the client list in a few seconds...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="bg-light min-vh-100">
-      <div className="container-xxl px-4 py-5">
-        <Navigation />
-        
-        <div className="mb-4 d-flex align-items-center justify-content-between">
-          <button 
-            className="btn btn-outline-primary"
-            onClick={() => navigate('/')}
-          >
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Client Portfolio
-          </button>
-          {usingSample && (
-            <span className="badge bg-warning text-dark">
-              Using Sample Data
-            </span>
-          )}
-        </div>
+  if (!client) return null;
 
-        {client && (
-          <>
-            <ClientHeader client={client} />
+  return (
+    <div className="min-vh-100 bg-light">
+      <Navigation />
+      
+      <div className="container-fluid py-4">
+        <div className="row">
+          <div className="col-12">
+            {/* Client Header */}
+            <ClientHeader 
+              client={client}
+              usingSampleData={usingSample}
+              onBack={() => navigate('/clients')}
+            />
             
-            <div className="row g-4">
+            <div className="row g-4 mt-1">
+              {/* Portfolio Overview */}
               <div className="col-lg-8">
                 <ClientPortfolioOverview 
-                  portfolio={portfolio} 
                   client={client}
+                  portfolio={portfolio}
+                  stats={portfolioStats}
                 />
               </div>
               
+              {/* AI Recommendations */}
               <div className="col-lg-4">
-                <AIRecommendationsEnhanced
+                <AIRecommendationsEnhanced 
                   recommendations={recommendations}
-                  clientId={clientId}
+                  clientName={client.name}
+                  clientId={client.id}
                 />
-                {/* Debug info */}
-                {recommendations.length > 0 && (
-                  <div className="mt-2 small text-muted">
-                    Debug: {recommendations.length} recommendations loaded
-                  </div>
-                )}
               </div>
             </div>
-          </>
-        )}
+          </div>
+        </div>
       </div>
     </div>
   );
