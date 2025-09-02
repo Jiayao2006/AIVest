@@ -10,10 +10,19 @@ const getRiskProfileColor = (risk) => {
   }
 };
 
-const getAUMBadgeColor = (aum) => {
-  if (aum >= 1000) return 'bg-gradient-primary';
-  if (aum >= 500) return 'bg-gradient-info';
-  return 'bg-gradient-secondary';
+const getAUMBadgeStyle = (aum) => {
+  if (aum >= 1000) return 'bg-dark text-white';
+  if (aum >= 500) return 'bg-secondary text-white';
+  return 'bg-light text-dark border';
+};
+
+const getRiskProfileBadgeStyle = (risk) => {
+  switch(risk) {
+    case 'Conservative': return 'bg-success-subtle text-success border border-success border-opacity-50';
+    case 'Moderate': return 'bg-warning-subtle text-warning border border-warning border-opacity-50';
+    case 'Aggressive': return 'bg-danger-subtle text-danger border border-danger border-opacity-50';
+    default: return 'bg-light text-dark border';
+  }
 };
 
 export default function ClientCard({ client, onDelete, onScheduleCall, onSendMessage }) {
@@ -56,10 +65,10 @@ export default function ClientCard({ client, onDelete, onScheduleCall, onSendMes
           <div className="flex-grow-1">
             <h5 className="card-title mb-1 text-dark fw-semibold">{name}</h5>
             <div className="d-flex align-items-center gap-2 mb-2">
-              <span className={`badge ${getAUMBadgeColor(aum)} text-white px-3 py-2`}>
+              <span className={`badge ${getAUMBadgeStyle(aum)} px-3 py-2 fw-medium`}>
                 ${aum.toLocaleString()}M AUM
               </span>
-              <span className={`badge bg-${getRiskProfileColor(riskProfile)} bg-opacity-10 text-${getRiskProfileColor(riskProfile)} border border-${getRiskProfileColor(riskProfile)} border-opacity-25`}>
+              <span className={`badge ${getRiskProfileBadgeStyle(riskProfile)} fw-medium`}>
                 {riskProfile}
               </span>
             </div>
@@ -102,7 +111,7 @@ export default function ClientCard({ client, onDelete, onScheduleCall, onSendMes
         
         <div className="mb-3">
           {segments.map(s => (
-            <span key={s} className="badge rounded-pill bg-light text-dark border me-1 mb-1 px-2 py-1">
+            <span key={s} className="badge rounded-pill bg-light text-dark border me-1 mb-1 px-2 py-1 fw-medium">
               {s}
             </span>
           ))}

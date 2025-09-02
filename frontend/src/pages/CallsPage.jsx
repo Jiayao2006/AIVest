@@ -414,8 +414,8 @@ export default function CallsPage() {
   if (loading) {
     return (
       <div className="bg-light min-vh-100">
-        <div className="container-xxl px-4 py-5">
-          <Navigation />
+        <Navigation />
+        <div className="container-fluid py-4">
           <div className="text-center py-5">
             <div className="spinner-border text-primary" role="status">
               <span className="visually-hidden">Loading...</span>
@@ -429,8 +429,8 @@ export default function CallsPage() {
 
   return (
     <div className="bg-light min-vh-100">
-      <div className="container-xxl px-4 py-5">
-        <Navigation />
+      <Navigation />
+      <div className="container-fluid py-4">
         
         {/* Current Call Interface */}
         {currentCall && (

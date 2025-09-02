@@ -35,7 +35,7 @@ export default function ClientPortfolioOverview({ portfolio, client }) {
       <div className="card-header bg-white border-0 py-3">
         <div className="d-flex justify-content-between align-items-center">
           <h5 className="card-title mb-0">
-            <i className="bi bi-pie-chart-fill text-primary me-2"></i>
+            <i className="bi bi-pie-chart-fill text-muted me-2"></i>
             Portfolio Overview
           </h5>
           <small className="text-muted">
@@ -51,7 +51,7 @@ export default function ClientPortfolioOverview({ portfolio, client }) {
             <div className="row g-3">
               <div className="col-md-4">
                 <div className="bg-light rounded p-3 text-center">
-                  <h4 className="text-primary mb-1">${totalValue.toLocaleString()}M</h4>
+                  <h4 className="text-dark mb-1">${totalValue.toLocaleString()}M</h4>
                   <small className="text-muted">Total Portfolio Value</small>
                 </div>
               </div>

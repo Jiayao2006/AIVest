@@ -1,0 +1,295 @@
+/* Minimalistic Color Override File */
+/* This file overrides Bootstrap's default bright colors with subtle, minimal alternatives */
+
+/* Override Bootstrap primary colors */
+.btn-primary {
+  --bs-btn-bg: #4a5568;
+  --bs-btn-border-color: #4a5568;
+  --bs-btn-hover-bg: #2d3748;
+  --bs-btn-hover-border-color: #2d3748;
+  --bs-btn-active-bg: #1a202c;
+  --bs-btn-active-border-color: #1a202c;
+}
+
+.text-primary {
+  color: #4a5568 !important;
+}
+
+.bg-primary {
+  background-color: #4a5568 !important;
+}
+
+.bg-primary-subtle {
+  background-color: #f7fafc !important;
+}
+
+.border-primary {
+  border-color: #4a5568 !important;
+}
+
+/* Override success colors */
+.text-success {
+  color: #22543d !important;
+}
+
+.bg-success {
+  background-color: #38a169 !important;
+}
+
+.bg-success-subtle {
+  background-color: #f0fff4 !important;
+}
+
+.btn-success {
+  --bs-btn-bg: #38a169;
+  --bs-btn-border-color: #38a169;
+}
+
+.border-success {
+  border-color: #38a169 !important;
+}
+
+/* Override warning colors */
+.text-warning {
+  color: #744210 !important;
+}
+
+.bg-warning {
+  background-color: #d69e2e !important;
+}
+
+.bg-warning-subtle {
+  background-color: #fffaf0 !important;
+}
+
+.btn-warning {
+  --bs-btn-bg: #d69e2e;
+  --bs-btn-border-color: #d69e2e;
+  color: white !important;
+}
+
+.border-warning {
+  border-color: #d69e2e !important;
+}
+
+/* Override danger colors */
+.text-danger {
+  color: #742a2a !important;
+}
+
+.bg-danger {
+  background-color: #e53e3e !important;
+}
+
+.bg-danger-subtle {
+  background-color: #fed7d7 !important;
+}
+
+.btn-danger {
+  --bs-btn-bg: #e53e3e;
+  --bs-btn-border-color: #e53e3e;
+}
+
+.border-danger {
+  border-color: #e53e3e !important;
+}
+
+/* Override info colors */
+.text-info {
+  color: #4299e1 !important;
+}
+
+.bg-info {
+  background-color: #4299e1 !important;
+}
+
+.bg-info-subtle {
+  background-color: #ebf8ff !important;
+}
+
+.btn-info {
+  --bs-btn-bg: #4299e1;
+  --bs-btn-border-color: #4299e1;
+}
+
+/* Minimal badge styling */
+.badge {
+  font-weight: 500;
+}
+
+/* Enhanced badge contrast */
+.badge.bg-light {
+  color: #374151 !important;
+  background-color: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.badge.bg-dark {
+  color: #ffffff !important;
+  background-color: #374151 !important;
+}
+
+.badge.bg-secondary {
+  color: #ffffff !important;
+  background-color: #6b7280 !important;
+}
+
+/* Badge variants for better readability */
+.badge.bg-success-subtle {
+  color: #22543d !important;
+  background-color: #f0fff4 !important;
+}
+
+.badge.bg-warning-subtle {
+  color: #744210 !important;
+  background-color: #fffaf0 !important;
+}
+
+.badge.bg-danger-subtle {
+  color: #742a2a !important;
+  background-color: #fed7d7 !important;
+}
+
+.badge.bg-info-subtle {
+  color: #2a4365 !important;
+  background-color: #ebf8ff !important;
+}
+
+/* Subtle borders and shadows */
+.shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+.shadow-lg {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Rounded corners - more minimal */
+.rounded {
+  border-radius: 6px !important;
+}
+
+.rounded-3 {
+  border-radius: 8px !important;
+}
+
+/* Form controls */
+.form-control {
+  border: 1px solid #e5e7eb;
+}
+
+.form-control:focus {
+  border-color: #4a5568;
+  box-shadow: 0 0 0 0.15rem rgba(74, 85, 104, 0.15);
+}
+
+/* Cards */
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+/* Alert overrides */
+.alert-warning {
+  color: #744210;
+  background-color: #fffaf0;
+  border-color: #f6e05e;
+}
+
+.alert-success {
+  color: #22543d;
+  background-color: #f0fff4;
+  border-color: #9ae6b4;
+}
+
+.alert-danger {
+  color: #742a2a;
+  background-color: #fed7d7;
+  border-color: #feb2b2;
+}
+
+.alert-info {
+  color: #2a4365;
+  background-color: #ebf8ff;
+  border-color: #90cdf4;
+}
+
+/* Additional subtle utilities */
+.text-muted {
+  color: #6b7280 !important;
+}
+
+.bg-light {
+  background-color: #f9fafb !important;
+}
+
+.border {
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Fix navbar button hover contrast */
+.btn-outline-secondary {
+  --bs-btn-color: #374151;
+  --bs-btn-border-color: #d1d5db;
+  --bs-btn-hover-color: #ffffff;
+  --bs-btn-hover-bg: #4a5568;
+  --bs-btn-hover-border-color: #4a5568;
+  --bs-btn-focus-shadow-rgb: 55, 65, 81;
+  --bs-btn-active-color: #ffffff;
+  --bs-btn-active-bg: #1f2937;
+  --bs-btn-active-border-color: #1f2937;
+  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+  --bs-btn-disabled-color: #9ca3af;
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: #d1d5db;
+}
+
+/* Make nav button inner text elements white on hover */
+.btn-outline-secondary:hover .text-secondary,
+.btn-outline-secondary:hover .text-muted,
+.btn-outline-secondary:hover .fw-medium,
+.btn-outline-secondary:hover .fw-semibold,
+.btn-outline-secondary:hover .small {
+  color: #ffffff !important;
+}
+
+/* Also make the icons white on hover */
+.btn-outline-secondary:hover i.text-secondary,
+.btn-outline-secondary:hover i.text-muted {
+  color: #ffffff !important;
+}
+
+/* Force all text inside buttons to be white on hover with higher specificity */
+.btn-outline-secondary:hover * {
+  color: #ffffff !important;
+}
+
+/* Target direct elements for font color change on hover */
+nav .btn-outline-secondary:hover div.fw-medium,
+nav .btn-outline-secondary:hover div.small,
+nav .btn-outline-secondary:hover i {
+  color: #ffffff !important;
+}
+
+/* Target the custom navigation links */
+.nav-link-custom.btn-outline-secondary:hover .text-secondary,
+.nav-link-custom.btn-outline-secondary:hover .text-muted,
+.nav-link-custom.btn-outline-secondary:hover i {
+  color: #ffffff !important;
+}
+
+/* Target specific navigation elements with high specificity */
+.btn-outline-secondary:hover .nav-icon,
+.btn-outline-secondary:hover .nav-label,
+.btn-outline-secondary:hover .nav-desc {
+  color: #ffffff !important;
+}
+
+/* Inline style override approach */
+.nav-link-custom.btn-outline-secondary:hover * {
+  color: white !important;
+}

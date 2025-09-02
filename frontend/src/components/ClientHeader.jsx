@@ -9,6 +9,21 @@ const getRiskProfileColor = (risk) => {
   }
 };
 
+const getAUMBadgeStyle = (aum) => {
+  if (aum >= 1000) return 'bg-dark text-white';
+  if (aum >= 500) return 'bg-secondary text-white';
+  return 'bg-light text-dark border';
+};
+
+const getRiskProfileBadgeStyle = (risk) => {
+  switch(risk) {
+    case 'Conservative': return 'bg-success-subtle text-success border border-success border-opacity-50';
+    case 'Moderate': return 'bg-warning-subtle text-warning border border-warning border-opacity-50';
+    case 'Aggressive': return 'bg-danger-subtle text-danger border border-danger border-opacity-50';
+    default: return 'bg-light text-dark border';
+  }
+};
+
 export default function ClientHeader({ client }) {
   const { id, name, phone, aum, domicile, segments, riskProfile, keyContacts, description } = client;
   
@@ -18,13 +33,13 @@ export default function ClientHeader({ client }) {
         <div className="row align-items-center">
           <div className="col-lg-8">
             <div className="d-flex align-items-center mb-3">
-              <div className="bg-primary rounded-circle p-3 me-3">
-                <i className="bi bi-person-fill text-white fs-4"></i>
+              <div className="bg-light rounded-circle p-3 me-3 border">
+                <i className="bi bi-person-fill text-dark fs-4"></i>
               </div>
               <div>
-                <h1 className="h3 fw-bold text-dark mb-1">{name}</h1>
+                <h1 className="h3 fw-semibold text-dark mb-1">{name}</h1>
                 <div className="d-flex align-items-center gap-3 mb-2">
-                  <span className="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">
+                  <span className="badge bg-light text-dark border px-2 py-1 fw-medium">
                     <i className="bi bi-hash me-1"></i>
                     ID: {id?.toUpperCase()}
                   </span>
@@ -40,10 +55,10 @@ export default function ClientHeader({ client }) {
           
           <div className="col-lg-4 text-lg-end">
             <div className="d-flex flex-wrap gap-2 justify-content-lg-end">
-              <span className="badge bg-gradient-primary text-white px-3 py-2">
+              <span className={`badge ${getAUMBadgeStyle(aum)} px-3 py-2 fw-medium`}>
                 ${aum.toLocaleString()}M AUM
               </span>
-              <span className={`badge bg-${getRiskProfileColor(riskProfile)} bg-opacity-10 text-${getRiskProfileColor(riskProfile)} border border-${getRiskProfileColor(riskProfile)} border-opacity-25 px-3 py-2`}>
+              <span className={`badge ${getRiskProfileBadgeStyle(riskProfile)} px-3 py-2 fw-medium`}>
                 {riskProfile} Risk
               </span>
             </div>
@@ -53,32 +68,32 @@ export default function ClientHeader({ client }) {
         <div className="row g-3 mt-2">
           <div className="col-md-4">
             <div className="d-flex align-items-center">
-              <i className="bi bi-geo-alt-fill text-primary me-2"></i>
+              <i className="bi bi-geo-alt-fill text-muted me-2"></i>
               <div>
                 <small className="text-muted d-block">Domicile</small>
-                <span className="fw-semibold">{domicile}</span>
+                <span className="fw-medium">{domicile}</span>
               </div>
             </div>
           </div>
           
           <div className="col-md-4">
             <div className="d-flex align-items-center">
-              <i className="bi bi-people-fill text-primary me-2"></i>
+              <i className="bi bi-people-fill text-muted me-2"></i>
               <div>
                 <small className="text-muted d-block">Key Contacts</small>
-                <span className="fw-semibold">{keyContacts?.join(', ') || 'None'}</span>
+                <span className="fw-medium">{keyContacts?.join(', ') || 'None'}</span>
               </div>
             </div>
           </div>
           
           <div className="col-md-4">
             <div className="d-flex align-items-center">
-              <i className="bi bi-tags-fill text-primary me-2"></i>
+              <i className="bi bi-tags-fill text-muted me-2"></i>
               <div>
                 <small className="text-muted d-block">Segments</small>
                 <div className="d-flex flex-wrap gap-1">
                   {segments.map(segment => (
-                    <span key={segment} className="badge bg-light text-dark border small">
+                    <span key={segment} className="badge bg-light text-dark border small fw-medium">
                       {segment}
                     </span>
                   ))}

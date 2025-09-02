@@ -23,6 +23,21 @@ const getPriorityColor = (priority) => {
   }
 };
 
+const getPriorityBadgeStyle = (priority) => {
+  switch(priority) {
+    case 'High': return 'bg-danger-subtle text-danger border border-danger border-opacity-50';
+    case 'Medium': return 'bg-warning-subtle text-warning border border-warning border-opacity-50';
+    case 'Low': return 'bg-info-subtle text-info border border-info border-opacity-50';
+    default: return 'bg-light text-dark border';
+  }
+};
+
+const getStatusBadgeStyle = (status) => {
+  return status === 'approved' 
+    ? 'bg-success-subtle text-success border border-success border-opacity-50' 
+    : 'bg-danger-subtle text-danger border border-danger border-opacity-50';
+};
+
 // Sample recommendation detail data for display when user clicks view details
 const hardcodedRecommendationDetails = {
   'rec001': {
@@ -194,7 +209,7 @@ export default function AIRecommendationsEnhanced({ recommendations, clientId })
             <i className="bi bi-robot text-primary me-2"></i>
             AI Recommendations
             {pendingRecommendations.length > 0 && (
-              <span className="badge bg-danger ms-2">{pendingRecommendations.length}</span>
+              <span className="badge bg-light text-dark border ms-2 fw-medium">{pendingRecommendations.length}</span>
             )}
           </h5>
         </div>
@@ -272,7 +287,7 @@ export default function AIRecommendationsEnhanced({ recommendations, clientId })
                 </div>
                 <div className="modal-body">
                   <div className="d-flex justify-content-between mb-4">
-                    <span className={`badge bg-${getPriorityColor(viewingDetail.priority)}`}>
+                    <span className={`badge ${getPriorityBadgeStyle(viewingDetail.priority)} fw-medium`}>
                       {viewingDetail.priority} Priority
                     </span>
                     <span className="text-muted small">
@@ -398,7 +413,7 @@ function RecommendationCard({ recommendation, onAction, onViewDetail, isActionin
             <small className="text-muted">{summary}</small>
           </div>
         </div>
-        <span className={`badge bg-${getPriorityColor(priority)} bg-opacity-10 text-${getPriorityColor(priority)} border border-${getPriorityColor(priority)} border-opacity-25`}>
+        <span className={`badge ${getPriorityBadgeStyle(priority)} fw-medium`}>
           {priority}
         </span>
       </div>
@@ -447,7 +462,7 @@ function RecommendationCard({ recommendation, onAction, onViewDetail, isActionin
         </div>
       ) : (
         <div className="d-flex align-items-center justify-content-between">
-          <span className={`badge ${status === 'approved' ? 'bg-success' : 'bg-danger'}`}>
+          <span className={`badge ${getStatusBadgeStyle(status)} fw-medium`}>
             {status === 'approved' ? 'Approved' : 'Rejected'}
           </span>
           <button
