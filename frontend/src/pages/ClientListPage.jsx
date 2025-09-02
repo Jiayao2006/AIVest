@@ -163,16 +163,17 @@ export default function ClientListPage() {
             <div className="card mb-4">
               <div className="card-body">
                 <h6 className="card-title mb-3">Search & Filters</h6>
-                <div className="row">
-                  <div className="col-lg-4 mb-3">
+                <div className="row g-3">
+                  <div className="col-12">
                     <SearchBar 
-                      query={query} 
-                      onQueryChange={setQuery}
-                      placeholder="Search clients..."
+                      value={query} 
+                      onChange={setQuery}
+                      resultsCount={filteredClients.length}
+                      totalCount={clients.length}
                     />
                   </div>
-                  <div className="col-lg-8">
-                    <div className="d-flex flex-wrap gap-3">
+                  <div className="col-12">
+                    <div className="d-flex flex-wrap gap-3 align-items-center">
                       <AdvancedFilters 
                         filters={filters}
                         onFiltersChange={setFilters}
